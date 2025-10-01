@@ -26,41 +26,37 @@ TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 st.markdown("""
 <style>
   /* Mindre luft på toppen/bunnen */
-  .block-container { padding-top: 1rem; padding-bottom: 1rem; }
-
-  /* Større tall på KPI */
-  div[data-testid="stMetricValue"] { font-size: 2.2rem; }
-
-  /* Lik høyde + midtjustert innhold i KPI-kort */
-  div[data-testid="stMetric"]{
-    min-height: 120px;                 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;           
+  .block-container { 
+    padding-top: 1rem; 
+    padding-bottom: 1rem; 
   }
-</style>
-""", unsafe_allow_html=True)
 
-  /* KPI-bokser (st.metric) som "cards" */
-  div[data-testid="stMetric"] {
+  /* KPI-bokser (st.metric) som "cards" + lik høyde og midtjustert innhold */
+  div[data-testid="stMetric"]{
     background: rgba(255,255,255,0.03);     /* diskret bakgrunn på mørkt tema */
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 12px;
     padding: 16px 18px;
     box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    min-height: 120px;                      /* lik høyde */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;                /* vertikalt sentrert */
   }
+
   /* KPI-verdier (store tall) */
   div[data-testid="stMetricValue"] { 
     font-size: 2.2rem; 
     font-weight: 700;
   }
+
   /* KPI-labels */
   div[data-testid="stMetricLabel"] {
     font-size: 0.95rem;
     opacity: 0.9;
   }
 
-  /* Generisk "card" du kan bruke rundt grafer/tabeller */
+  /* Generisk "card" til grafer/tabeller (bruk med <div class="rr-card">...</div>) */
   .rr-card {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.08);
@@ -70,14 +66,10 @@ st.markdown("""
     margin-bottom: 1rem;
   }
 
-  /* Litt strammere overskrift-spacing inni cards */
-  .rr-card h3, .rr-card h4 { margin-top: 0.2rem; }
-
-  /* Plotly-bakgrunn: la kortets bakgrunn skinne gjennom */
+  /* Plotly: transparent bakgrunn så card-bakgrunn synes */
   .stPlotlyChart, .plotly, .js-plotly-plot { background: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
-
 
 
 # Auto-refresh every 5 minutes
