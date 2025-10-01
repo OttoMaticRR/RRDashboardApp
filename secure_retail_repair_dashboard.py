@@ -17,9 +17,17 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
 
-st.markdown("""
+# All CSS i ÉN blokk (IKKE fler st.markdown med <style> under)
+css = '''
 <style>
-/* Tving frem sidebar-toggle ("hamburger") som flyter i hjørnet */
+/* --- Fjern “dødplass” på toppen (skjul header/toolbar) --- */
+header[data-testid="stHeader"] { height: 0; visibility: hidden; }
+div[data-testid="stToolbar"]   { visibility: hidden; height: 0; }
+
+/* Litt strammere topppadding på innholdet */
+.block-container { padding-top: 0.4rem; }
+
+/* --- Tving frem sidebar-hamburger (☰) og plasser den i hjørnet --- */
 div[data-testid="collapsedControl"] {
   visibility: visible !important;
   display: block !important;
@@ -33,70 +41,67 @@ div[data-testid="collapsedControl"] {
   padding: 2px 6px;
 }
 
-/* Behold stram topp */
-.block-container { padding-top: 0.4rem; }
-</style>
-""", unsafe_allow_html=True)
+/* --- KPI-kort: lik høyde, midtstilt og "card"-stil --- */
+div[data-testid="stMetric"]{
+  min-height: 150px;
+  height: 150px;                /* tvungen lik høyde */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;      /* vertikalt senter */
+  align-items: center;          /* horisontalt senter */
+  text-align: center;
 
-# Kompakt topplinje/overskrift
-st.markdown("""
-<style>
-/* Skjul Streamlit-header/toolbar (fjerner tomt felt helt øverst) */
-header[data-testid="stHeader"] { height: 0px; visibility: hidden; }
-div[data-testid="stToolbar"]   { visibility: hidden; height: 0px; }
-
-st.markdown("""
-<style>
-/* Tving frem sidebar-toggle ("hamburger") som flyter i hjørnet */
-div[data-testid="collapsedControl"] {
-  visibility: visible !important;
-  display: block !important;
-  position: fixed !important;
-  top: 10px;
-  left: 10px;
-  z-index: 1001;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  padding: 2px 6px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
 
-/* Behold stram topp */
-.block-container { padding-top: 0.4rem; }
-</style>
-""", unsafe_allow_html=True)
-
-/* Mindre topppadding i hoved-containeren */
-.block-container { padding-top: 0.4rem; }
-
-/* Strammere tittel – mindre margin over/under */
-h1 {
-  margin-top: 0rem;
-  margin-bottom: 0.5rem;
+/* Store tall */
+div[data-testid="stMetricValue"] {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
 }
 
-/* Dato til høyre, tettere på tittelen */
-.date-right {
-  text-align: right;
-  font-size: 1.0rem;
-  padding-top: 0.2rem;    /* justér ved behov */
-  margin-bottom: 0; 
+/* KPI-labels */
+div[data-testid="stMetricLabel"] {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  text-align: center;
+  width: 100%;
 }
 
-/* Liten «dra-opp» effekt på KPI-rad om du vil enda tettere på tittelen */
-.kpi-row { margin-top: -0.2rem; }
+/* Generiske “cards” for grafer/tabeller */
+.rr-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  margin-bottom: 1rem;
+}
+
+/* La kortbakgrunn skinne gjennom Plotly */
+.stPlotlyChart, .plotly, .js-plotly-plot { background: transparent !important; }
+
+/* Dato høyrejustert i headeren */
+.date-right { text-align: right; font-size: 1.0rem; padding-top: 0.2rem; margin-bottom: 0; }
 </style>
-""", unsafe_allow_html=True)
+'''
+st.markdown(css, unsafe_allow_html=True)
 
 # --- KONSTANTER (må komme før de brukes) ---
 TITLE = "Retail Repair Dashboard"
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
 TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 
-# Ekstra kolonner/innstillinger for "Innlevert"
-DATE_COLS = ["Innlevert", "Received date", "Date"]  # mulige navn på dato-kolonnen
-WORKSHEET_REPARERT   = st.secrets.get("worksheet", "Sheet1")   # som før
-WORKSHEET_INNLEVERT  = st.secrets.get("worksheet_innlevert", "Sheet2")  # ny
+# For “Innlevert”
+DATE_COLS = ["Innlevert", "Received date", "Date"]
+WORKSHEET_REPARERT  = st.secrets.get("worksheet", "Sheet1")
+WORKSHEET_INNLEVERT = st.secrets.get("worksheet_innlevert", "Sheet2")
 
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
@@ -177,10 +182,6 @@ elif auth_status is False:
 # ----------------------------
 # Google Sheets helpers (+ støtte for Innlevert)
 # ----------------------------
-
-# Hvilke worksheets som skal brukes (kan overstyres i secrets)
-WORKSHEET_REPARERT  = st.secrets.get("worksheet", "Sheet1")
-WORKSHEET_INNLEVERT = st.secrets.get("worksheet_innlevert", "Sheet2")
 
 # Kolonnenavn som kan forekomme for dato i "Innlevert"
 DATE_COLS = ["Innlevert", "Received date", "Date"]
