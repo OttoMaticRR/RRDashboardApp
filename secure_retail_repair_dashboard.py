@@ -16,17 +16,52 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
 
-# Kompakt layout med mindre luft på toppen
+# Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
 <style>
-  .block-container { padding-top: 1rem; padding-bottom: 1rem; }
-  div[data-testid="stMetricValue"] { font-size: 2.2rem; }
+  /* Mindre luft på siden */
+  .block-container { 
+    padding-top: 1rem; 
+    padding-bottom: 1rem; 
+  }
+
+  /* KPI-bokser (st.metric) som "cards" */
+  div[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.03);     /* diskret bakgrunn på mørkt tema */
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  }
+  /* KPI-verdier (store tall) */
+  div[data-testid="stMetricValue"] { 
+    font-size: 2.2rem; 
+    font-weight: 700;
+  }
+  /* KPI-labels */
+  div[data-testid="stMetricLabel"] {
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+
+  /* Generisk "card" du kan bruke rundt grafer/tabeller */
+  .rr-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    margin-bottom: 1rem;
+  }
+
+  /* Litt strammere overskrift-spacing inni cards */
+  .rr-card h3, .rr-card h4 { margin-top: 0.2rem; }
+
+  /* Plotly-bakgrunn: la kortets bakgrunn skinne gjennom */
+  .stPlotlyChart, .plotly, .js-plotly-plot { background: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
-TITLE = "Retail Repair Dashboard"
-BRAND_COLS = ["Merke", "Product brand", "Brand"]
-TECH_COLS = ["Tekniker", "Service technician", "Technician"]
 
 
 # Auto-refresh every 5 minutes
