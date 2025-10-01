@@ -17,6 +17,27 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
 
+st.markdown("""
+<style>
+/* Tving frem sidebar-toggle ("hamburger") som flyter i hjørnet */
+div[data-testid="collapsedControl"] {
+  visibility: visible !important;
+  display: block !important;
+  position: fixed !important;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 2px 6px;
+}
+
+/* Behold stram topp */
+.block-container { padding-top: 0.4rem; }
+</style>
+""", unsafe_allow_html=True)
+
 # Kompakt topplinje/overskrift
 st.markdown("""
 <style>
