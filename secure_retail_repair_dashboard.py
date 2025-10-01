@@ -36,13 +36,19 @@ for user in auth_cfg.get("credentials", []):
     }
 
 authenticator = stauth.Authenticate(
-    credentials=credentials_dict,
-    cookie_name=auth_cfg.get("cookie_name", "repair_dash_cookie"),
-    key=auth_cfg.get("signature_key", "CHANGE_ME"),
-    cookie_expiry_days=auth_cfg.get("cookie_expiry_days", 7),
+    credentials_dict,
+    auth_cfg.get("cookie_name", "repair_dash_cookie"),
+    auth_cfg.get("signature_key", "CHANGE_ME"),
+    auth_cfg.get("cookie_expiry_days", 7),
 )
 
-name, auth_status, username = authenticator.login("Login", "main")
+auth_status, username, name = authenticator.login(location="main", fields={"Form name": "Login"})
+
+if auth_status is None:
+    st.stop()
+elif auth_status is False:
+    st.error("Invalid username/password")
+    st.stop()
 
 if not auth_status:
     if auth_status is False:
