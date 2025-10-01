@@ -24,9 +24,16 @@ st.set_page_config(
 # All CSS i ÉN blokk (IKKE fler st.markdown med <style> under)
 css = '''
 <style>
-/* --- Fjern “dødplass” på toppen (skjul header/toolbar) --- */
-header[data-testid="stHeader"] { height: 0; visibility: hidden; }
-div[data-testid="stToolbar"]   { visibility: hidden; height: 0; }
+/* Behold headeren (slank), slik at hamburger vises */
+header[data-testid="stHeader"] {
+  height: 2.8rem;
+  background: transparent;
+}
+
+div[data-testid="stToolbar"] {
+  display: none;  /* skjul bare Streamlit sin Share/Settings */
+  height: 0;
+}
 
 /* Litt strammere topppadding på innholdet */
 .block-container { padding-top: 0.4rem; }
