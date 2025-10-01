@@ -185,19 +185,13 @@ def replace_data(df_new: pd.DataFrame):
     values = [out.columns.tolist()] + out.fillna("").astype(str).values.tolist()
     ws.update("A1", values)
 
-# -------------------------------
 # Header (tittel venstre, dato høyre)
-# -------------------------------
-h_left, h_right = st.columns([4, 1])
-
+h_left, h_right = st.columns([6, 1])
 with h_left:
-    st.markdown(f"# {TITLE}")  # Stor tittel
-
+    st.markdown(f"# {TITLE}")
 with h_right:
     st.markdown(
-        f"<div style='text-align:right; font-size:1.2rem; padding-top:0.8rem;'>"
-        f"{datetime.now().strftime('%Y-%m-%d')}"
-        f"</div>",
+        f"<div class='date-right'>{datetime.now().strftime('%Y-%m-%d')}</div>",
         unsafe_allow_html=True
     )
 
