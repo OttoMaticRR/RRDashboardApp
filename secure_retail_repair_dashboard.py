@@ -32,12 +32,13 @@ st.markdown("""
     border-radius: 12px;
     padding: 16px 18px;
     box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-    min-height: 120px;
+    min-height: 150px;            /* fast høyde */
+    height: 150px;                /* tving samme høyde */
     display: flex;
     flex-direction: column;
-    justify-content: center;   /* vertikalt sentrert */
-    align-items: center;       /* horisontalt sentrert */
-    text-align: center;        /* tekst midtstilt */
+    justify-content: center;      /* vertikalt sentrert */
+    align-items: center;          /* horisontalt sentrert */
+    text-align: center;
   }
 
   /* KPI-verdier (store tall) */
