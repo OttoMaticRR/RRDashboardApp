@@ -1,0 +1,8 @@
+streamlit
+pandas
+plotly
+openpyxl
+gspread
+google-auth
+streamlit-authenticator
+streamlit-autorefresh
