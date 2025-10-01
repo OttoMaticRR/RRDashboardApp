@@ -24,24 +24,17 @@ st.set_page_config(
 # All CSS i ÉN blokk (IKKE fler st.markdown med <style> under)
 css = '''
 <style>
-/* Behold headeren (slank), slik at hamburger vises */
-header[data-testid="stHeader"] {
-  height: 2.8rem;
+/* --- SLANK HEADER + vis burger --- */
+header[data-testid="stHeader"]{
+  height: 1.2rem;            /* tynn header så burger kan eksistere */
   background: transparent;
 }
 
-/* Ikke skjul hele toolbar – da forsvinner burgeren i noen versjoner */
-div[data-testid="stToolbar"]{
-  height: 2.8rem;               /* lav, men synlig */
-  background: transparent;
-}
-
-/* Skjul alt inni toolbar ... */
+/* Skjul alt i toolbar ... */
 div[data-testid="stToolbar"] *{
   display: none !important;
 }
-
-/* ... bortsett fra selve burgeren (gamle og nye varianter) */
+/* ... bortsett fra burger-knappen (treff gamle og nye varianter) */
 div[data-testid="stToolbar"] div[data-testid="collapsedControl"],
 div[data-testid="stToolbar"] button[title="Open sidebar"],
 div[data-testid="stToolbar"] button[title="Toggle sidebar"],
@@ -49,21 +42,15 @@ div[data-testid="stToolbar"] button[aria-label="Open sidebar"],
 div[data-testid="stToolbar"] button[aria-label="Toggle sidebar"],
 div[data-testid="stToolbar"] button[data-testid="baseButton-header"]{
   display: inline-flex !important;
+}
 
-/* Litt strammere topppadding på innholdet */
-.block-container { padding-top: 0.4rem; }
-
-/* --- Vis og flytt sidebar-hamburger (fungerer på flere Streamlit-versjoner) --- */
-/* Eldre testid */
+/* Flytt burgeren pent opp i hjørnet og gi den litt kontrast */
 div[data-testid="collapsedControl"],
-/* Nyere varianter (fall-backs) */
 button[title="Open sidebar"],
 button[title="Toggle sidebar"],
 button[aria-label="Open sidebar"],
 button[aria-label="Toggle sidebar"],
-button[data-testid="baseButton-header"] {
-  visibility: visible !important;
-  display: inline-flex !important;
+button[data-testid="baseButton-header"]{
   position: fixed !important;
   top: 10px !important;
   left: 10px !important;
@@ -75,25 +62,28 @@ button[data-testid="baseButton-header"] {
   backdrop-filter: blur(4px);
 }
 
-/* Noen temaer gjør knappen transparent – gi den litt ikonfarge */
-button[title="Open sidebar"] svg,
-button[title="Toggle sidebar"] svg,
-button[aria-label="Open sidebar"] svg,
-button[aria-label="Toggle sidebar"] svg,
-button[data-testid="baseButton-header"] svg {
-  fill: currentColor !important;
-  opacity: 0.9 !important;
+/* --- DØDPLASS: trekk innholdet opp --- */
+main .block-container{
+  padding-top: 0.2rem;     /* stram padding */
+  margin-top: -0.8rem;     /* kompensér for header-høyden */
 }
 
+/* Dato høyrejustert, litt strammere */
+.date-right{
+  text-align: right;
+  font-size: 1.0rem;
+  padding-top: .2rem;
+  margin-bottom: 0;
+}
 
-/* --- KPI-kort: lik høyde, midtstilt og "card"-stil --- */
+/* --- KPI-kort: lik høyde, midtstilt, card-stil --- */
 div[data-testid="stMetric"]{
   min-height: 150px;
-  height: 150px;                /* tvungen lik høyde */
+  height: 150px;
   display: flex;
   flex-direction: column;
-  justify-content: center;      /* vertikalt senter */
-  align-items: center;          /* horisontalt senter */
+  justify-content: center;
+  align-items: center;
   text-align: center;
 
   background: rgba(255,255,255,0.03);
@@ -102,25 +92,21 @@ div[data-testid="stMetric"]{
   padding: 16px 18px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
-
-/* Store tall */
-div[data-testid="stMetricValue"] {
+div[data-testid="stMetricValue"]{
   font-size: 2.2rem;
   font-weight: 700;
-  text-align: center;
   width: 100%;
+  text-align: center;
 }
-
-/* KPI-labels */
-div[data-testid="stMetricLabel"] {
+div[data-testid="stMetricLabel"]{
   font-size: 0.95rem;
-  opacity: 0.9;
-  text-align: center;
+  opacity: .9;
   width: 100%;
+  text-align: center;
 }
 
-/* Generiske “cards” for grafer/tabeller */
-.rr-card {
+/* Generiske cards til grafer/tabeller */
+.rr-card{
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
@@ -129,8 +115,8 @@ div[data-testid="stMetricLabel"] {
   margin-bottom: 1rem;
 }
 
-/* La kortbakgrunn skinne gjennom Plotly */
-.stPlotlyChart, .plotly, .js-plotly-plot { background: transparent !important; }
+/* La bakgrunn skinne gjennom i Plotly */
+.stPlotlyChart, .plotly, .js-plotly-plot{ background: transparent !important; }
 
 /* Dato høyrejustert i headeren */
 .date-right { text-align: right; font-size: 1.0rem; padding-top: 0.2rem; margin-bottom: 0; }
