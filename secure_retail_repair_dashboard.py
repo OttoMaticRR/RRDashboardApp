@@ -165,25 +165,31 @@ df[tech_col]  = df[tech_col].astype(str).str.strip()
 df = df[(df[brand_col] != "") & (df[tech_col] != "")]
 
 # -------------------------------
-# KPI-tall
+# KPI-tall (symmetrisk med Brands i midten)
 # -------------------------------
 total_repairs = len(df)
 unique_brands = df[brand_col].nunique()
+
 repairs_per_tech = (
     df.groupby(tech_col).size()
       .reset_index(name="Repairs")
       .rename(columns={tech_col: "Technician"})
       .sort_values("Repairs", ascending=False, ignore_index=True)
 )
-top_tech = repairs_per_tech.iloc[0] if not repairs_per_tech.empty else None
+top_tech_name = repairs_per_tech.iloc[0]["Technician"] if not repairs_per_tech.empty else "-"
+top_tech_reps = int(repairs_per_tech.iloc[0]["Repairs"]) if not repairs_per_tech.empty else 0
 
-k1, k2, k3 = st.columns([1, 1, 2])
-k1.metric("Total Repairs", f"{total_repairs}")
-k2.metric("Brands", f"{unique_brands}")
-if top_tech is not None:
-    k3.metric("Top Technician", f"{top_tech['Technician']}", f"{int(top_tech['Repairs'])} repairs")
-else:
-    k3.metric("Top Technician", "-", None)
+# 5 like kolonner → innhold i 1, 3 og 5 gir perfekt sentrering av midtkolonnen
+c1, c2, c3, c4, c5 = st.columns([1, 1, 1, 1, 1])
+
+with c1:
+    st.metric("Total Repairs", total_repairs)
+
+with c3:
+    st.metric("Brands", unique_brands)
+
+with c5:
+    st.metric("Top Technician", top_tech_name, f"{top_tech_reps} repairs")
 
 
 # -------------------------------
