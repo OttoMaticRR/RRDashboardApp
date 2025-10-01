@@ -16,9 +16,18 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
 
+# Kompakt layout med mindre luft på toppen
+st.markdown("""
+<style>
+  .block-container { padding-top: 1rem; padding-bottom: 1rem; }
+  div[data-testid="stMetricValue"] { font-size: 2.2rem; }
+</style>
+""", unsafe_allow_html=True)
+
 TITLE = "Retail Repair Dashboard"
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
-TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
+TECH_COLS = ["Tekniker", "Service technician", "Technician"]
+
 
 # Auto-refresh every 5 minutes
 st_autorefresh(interval=5 * 60 * 1000, key="auto_refresh_5min")
@@ -116,14 +125,18 @@ def replace_data(df_new: pd.DataFrame):
     values = [out.columns.tolist()] + out.fillna("").astype(str).values.tolist()
     ws.update("A1", values)
 
-# ----------------------------
-# Header (title left, date right)
-# ----------------------------
+# -------------------------------
+# Header (tittel venstre, dato høyre)
+# -------------------------------
 h_left, h_right = st.columns([4, 1])
 with h_left:
-    st.markdown(f"## {TITLE}")
+    st.markdown(f"# {TITLE}")  # Stor tittel
 with h_right:
-    st.markdown(f"**Date:** {datetime.now().strftime('%Y-%m-%d')}")
+    st.markdown(f"**{datetime.now().strftime('%Y-%m-%d')}**")
+
+# Skjul "Logged in as"
+# st.caption(f"Logged in as **{name}**")
+
 
 # ----------------------------
 # Load and clean data
@@ -151,22 +164,20 @@ df[brand_col] = df[brand_col].astype(str).str.strip()
 df[tech_col]  = df[tech_col].astype(str).str.strip()
 df = df[(df[brand_col] != "") & (df[tech_col] != "")]
 
-# ----------------------------
-# KPIs
-# ----------------------------
+# -------------------------------
+# KPI-tall
+# -------------------------------
 total_repairs = len(df)
 unique_brands = df[brand_col].nunique()
 repairs_per_tech = (
-    df.groupby(tech_col)
-      .size()
+    df.groupby(tech_col).size()
       .reset_index(name="Repairs")
       .rename(columns={tech_col: "Technician"})
       .sort_values("Repairs", ascending=False, ignore_index=True)
 )
-
 top_tech = repairs_per_tech.iloc[0] if not repairs_per_tech.empty else None
 
-k1, k2, k3 = st.columns(3)
+k1, k2, k3 = st.columns([1, 1, 2])
 k1.metric("Total Repairs", f"{total_repairs}")
 k2.metric("Brands", f"{unique_brands}")
 if top_tech is not None:
@@ -174,54 +185,42 @@ if top_tech is not None:
 else:
     k3.metric("Top Technician", "-", None)
 
-# ----------------------------
-# Charts row
-# ----------------------------
-chart_left, chart_right = st.columns(2)
 
-# Build brand counts robustly (avoids value_counts naming quirks)
-repairs_per_brand = (
-    df.groupby(brand_col)
-      .size()
-      .reset_index(name="Repairs")
-      .rename(columns={brand_col: "Brand"})
-      .sort_values("Repairs", ascending=False, ignore_index=True)
-)
+# -------------------------------
+# Charts
+# -------------------------------
+left, right = st.columns(2)
 
-with chart_left:
+# Brand counts
+repairs_per_brand = (df.groupby(brand_col).size()
+                     .reset_index(name="Repairs")
+                     .rename(columns={brand_col: "Brand"})
+                     .sort_values("Repairs", ascending=False, ignore_index=True))
+
+with left:
     st.subheader("Repairs by Brand")
     if repairs_per_brand.empty:
-        st.info("No brand data to display.")
+        st.info("No brand data.")
     else:
-        # Ensure proper dtypes and no NaNs
         repairs_per_brand["Brand"] = repairs_per_brand["Brand"].astype(str)
         repairs_per_brand["Repairs"] = repairs_per_brand["Repairs"].astype(int)
-
-        fig_b = px.bar(
-            repairs_per_brand,
-            x="Brand",
-            y="Repairs",
-            text="Repairs",
-        )
+        fig_b = px.bar(repairs_per_brand, x="Brand", y="Repairs", text="Repairs")
         fig_b.update_traces(textposition="outside", cliponaxis=False)
-        fig_b.update_layout(margin=dict(l=10, r=10, t=40, b=10), xaxis_tickangle=-35)
+        fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
         st.plotly_chart(fig_b, use_container_width=True)
 
-
-with chart_right:
+with right:
     st.subheader("Repairs by Technician")
-    if not repairs_per_tech.empty:
-        fig_t = px.pie(
-            repairs_per_tech,
-            names="Technician",
-            values="Repairs",
-            hole=0.6,
-        )
-        fig_t.update_traces(textinfo="percent+label")
-        fig_t.update_layout(showlegend=True, margin=dict(l=10, r=10, t=40, b=10))
-        st.plotly_chart(fig_t, use_container_width=True)
-    else:
+    if repairs_per_tech.empty:
         st.info("No technician data.")
+    else:
+        repairs_per_tech["Technician"] = repairs_per_tech["Technician"].astype(str)
+        repairs_per_tech["Repairs"] = repairs_per_tech["Repairs"].astype(int)
+        fig_t = px.pie(repairs_per_tech, names="Technician", values="Repairs", hole=0.6)
+        fig_t.update_traces(textinfo="percent+label")
+        fig_t.update_layout(showlegend=True, margin=dict(l=10, r=10, t=30, b=10))
+        st.plotly_chart(fig_t, use_container_width=True)
+
 
 # ----------------------------
 # Tables (expander)
