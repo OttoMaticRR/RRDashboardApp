@@ -24,105 +24,83 @@ st.set_page_config(
 # All CSS i ÉN blokk (IKKE fler st.markdown med <style> under)
 css = '''
 <style>
-/* --- SLANK HEADER + vis burger --- */
+/* ————— SLANK HEADER (la den være synlig slik at burgeren kan vises) ————— */
 header[data-testid="stHeader"]{
-  height: 1.2rem;            /* tynn header så burger kan eksistere */
   background: transparent;
+  height: 2rem;          /* tynn */
+  min-height: 2rem;
 }
 
-/* Skjul alt i toolbar ... */
-div[data-testid="stToolbar"] *{
-  display: none !important;
-}
-/* ... bortsett fra burger-knappen (treff gamle og nye varianter) */
-div[data-testid="stToolbar"] div[data-testid="collapsedControl"],
-div[data-testid="stToolbar"] button[title="Open sidebar"],
-div[data-testid="stToolbar"] button[title="Toggle sidebar"],
-div[data-testid="stToolbar"] button[aria-label="Open sidebar"],
-div[data-testid="stToolbar"] button[aria-label="Toggle sidebar"],
-div[data-testid="stToolbar"] button[data-testid="baseButton-header"]{
-  display: inline-flex !important;
-}
+/* Ikke skjul toolbaren – la Streamlit håndtere den.
+   (Fjern alle regler som hadde `div[data-testid="stToolbar"] * { display:none }`) */
 
-/* Flytt burgeren pent opp i hjørnet og gi den litt kontrast */
+/* ————— HAMBURGER: gjør den synlig og plasser den i hjørnet ————— */
+/* Nyere Streamlit */
+div[data-testid="stSidebarCollapsedControl"]{
+  visibility: visible !important;
+  display: block !important;
+  position: fixed !important;
+  top: 10px; left: 10px;
+  z-index: 1001;
+}
+/* Eldre fallbacks */
 div[data-testid="collapsedControl"],
 button[title="Open sidebar"],
 button[title="Toggle sidebar"],
 button[aria-label="Open sidebar"],
 button[aria-label="Toggle sidebar"],
 button[data-testid="baseButton-header"]{
+  visibility: visible !important;
+  display: inline-flex !important;
   position: fixed !important;
-  top: 10px !important;
-  left: 10px !important;
-  z-index: 1001 !important;
-  background: rgba(255,255,255,0.06) !important;
-  border: 1px solid rgba(255,255,255,0.2) !important;
-  border-radius: 8px !important;
-  padding: 2px 6px !important;
+  top: 10px; left: 10px;
+  z-index: 1001;
+}
+
+/* Litt kontrast på knappen */
+div[data-testid="stSidebarCollapsedControl"],
+div[data-testid="collapsedControl"],
+button[title="Open sidebar"],
+button[title="Toggle sidebar"],
+button[aria-label="Open sidebar"],
+button[aria-label="Toggle sidebar"],
+button[data-testid="baseButton-header"]{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 2px 6px;
   backdrop-filter: blur(4px);
 }
 
-/* --- DØDPLASS: trekk innholdet opp --- */
+/* ————— Fjern dødplass i innholdet ————— */
 main .block-container{
-  padding-top: 0.2rem;     /* stram padding */
-  margin-top: -0.8rem;     /* kompensér for header-høyden */
-}
-
-/* Dato høyrejustert, litt strammere */
-.date-right{
-  text-align: right;
-  font-size: 1.0rem;
   padding-top: .2rem;
-  margin-bottom: 0;
+  margin-top: -.6rem;    /* justér ved behov (mer negativt = mindre luft) */
 }
 
-/* --- KPI-kort: lik høyde, midtstilt, card-stil --- */
+/* Dato høyre */
+.date-right{ text-align:right; font-size:1rem; margin:0; padding-top:.2rem; }
+
+/* KPI-kort (som du hadde) */
 div[data-testid="stMetric"]{
-  min-height: 150px;
-  height: 150px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  min-height:150px; height:150px;
+  display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px; padding:16px 18px; box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+div[data-testid="stMetricValue"]{ font-size:2.2rem; font-weight:700; text-align:center; width:100%; }
+div[data-testid="stMetricLabel"]{ font-size:.95rem; opacity:.9; text-align:center; width:100%; }
 
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-div[data-testid="stMetricValue"]{
-  font-size: 2.2rem;
-  font-weight: 700;
-  width: 100%;
-  text-align: center;
-}
-div[data-testid="stMetricLabel"]{
-  font-size: 0.95rem;
-  opacity: .9;
-  width: 100%;
-  text-align: center;
-}
-
-/* Generiske cards til grafer/tabeller */
+/* Cards for grafer/tabeller */
 .rr-card{
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  margin-bottom: 1rem;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px; padding:16px; box-shadow:0 6px 16px rgba(0,0,0,.25); margin-bottom:1rem;
 }
-
-/* La bakgrunn skinne gjennom i Plotly */
-.stPlotlyChart, .plotly, .js-plotly-plot{ background: transparent !important; }
-
-/* Dato høyrejustert i headeren */
-.date-right { text-align: right; font-size: 1.0rem; padding-top: 0.2rem; margin-bottom: 0; }
+.stPlotlyChart, .plotly, .js-plotly-plot{ background:transparent !important; }
 </style>
 '''
 st.markdown(css, unsafe_allow_html=True)
+
 
 # --- KONSTANTER (må komme før de brukes) ---
 TITLE = "Retail Repair Dashboard"
