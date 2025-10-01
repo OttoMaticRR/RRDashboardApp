@@ -158,8 +158,14 @@ df = df[(df[brand_col] != "") & (df[tech_col] != "")]
 # ----------------------------
 total_repairs = len(df)
 unique_brands = df[brand_col].nunique()
-repairs_per_tech = df[tech_col].value_counts().reset_index()
-repairs_per_tech.columns = ["Technician", "Repairs"]
+repairs_per_tech = (
+    df.groupby(tech_col)
+      .size()
+      .reset_index(name="Repairs")
+      .rename(columns={tech_col: "Technician"})
+      .sort_values("Repairs", ascending=False, ignore_index=True)
+)
+
 top_tech = repairs_per_tech.iloc[0] if not repairs_per_tech.empty else None
 
 k1, k2, k3 = st.columns(3)
@@ -175,24 +181,34 @@ else:
 # ----------------------------
 chart_left, chart_right = st.columns(2)
 
+# Build brand counts robustly (avoids value_counts naming quirks)
 repairs_per_brand = (
-    df[brand_col].value_counts()
-      .reset_index()
-      .rename(columns={"index": "Brand", brand_col: "Repairs"})
-      .sort_values("Repairs", ascending=False)
+    df.groupby(brand_col)
+      .size()
+      .reset_index(name="Repairs")
+      .rename(columns={brand_col: "Brand"})
+      .sort_values("Repairs", ascending=False, ignore_index=True)
 )
 
 with chart_left:
     st.subheader("Repairs by Brand")
-    fig_b = px.bar(
-        repairs_per_brand,
-        x="Brand",
-        y="Repairs",
-        text="Repairs",
-    )
-    fig_b.update_traces(textposition="outside")
-    fig_b.update_layout(margin=dict(l=10, r=10, t=40, b=10))
-    st.plotly_chart(fig_b, use_container_width=True)
+    if repairs_per_brand.empty:
+        st.info("No brand data to display.")
+    else:
+        # Ensure proper dtypes and no NaNs
+        repairs_per_brand["Brand"] = repairs_per_brand["Brand"].astype(str)
+        repairs_per_brand["Repairs"] = repairs_per_brand["Repairs"].astype(int)
+
+        fig_b = px.bar(
+            repairs_per_brand,
+            x="Brand",
+            y="Repairs",
+            text="Repairs",
+        )
+        fig_b.update_traces(textposition="outside", cliponaxis=False)
+        fig_b.update_layout(margin=dict(l=10, r=10, t=40, b=10), xaxis_tickangle=-35)
+        st.plotly_chart(fig_b, use_container_width=True)
+
 
 with chart_right:
     st.subheader("Repairs by Technician")
