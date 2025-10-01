@@ -51,6 +51,11 @@ TITLE = "Retail Repair Dashboard"
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
 TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 
+# Ekstra kolonner/innstillinger for "Innlevert"
+DATE_COLS = ["Innlevert", "Received date", "Date"]  # mulige navn på dato-kolonnen
+WORKSHEET_REPARERT   = st.secrets.get("worksheet", "Sheet1")   # som før
+WORKSHEET_INNLEVERT  = st.secrets.get("worksheet_innlevert", "Sheet2")  # ny
+
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
 <style>
