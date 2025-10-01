@@ -4,5 +4,5 @@ plotly
 openpyxl
 gspread
 google-auth
-streamlit-authenticator
+streamlit-authenticator==0.3.2
 streamlit-autorefresh
