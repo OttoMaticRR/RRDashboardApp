@@ -165,7 +165,7 @@ df[tech_col]  = df[tech_col].astype(str).str.strip()
 df = df[(df[brand_col] != "") & (df[tech_col] != "")]
 
 # -------------------------------
-# KPI-tall (symmetrisk med Brands i midten)
+# KPI-tall (med dato midtstilt)
 # -------------------------------
 total_repairs = len(df)
 unique_brands = df[brand_col].nunique()
@@ -179,7 +179,7 @@ repairs_per_tech = (
 top_tech_name = repairs_per_tech.iloc[0]["Technician"] if not repairs_per_tech.empty else "-"
 top_tech_reps = int(repairs_per_tech.iloc[0]["Repairs"]) if not repairs_per_tech.empty else 0
 
-# 5 like kolonner → innhold i 1, 3 og 5 gir perfekt sentrering av midtkolonnen
+# 5 like kolonner → innhold i 1, 3 og 5 gir perfekt balanse
 c1, c2, c3, c4, c5 = st.columns([1, 1, 1, 1, 1])
 
 with c1:
@@ -187,6 +187,7 @@ with c1:
 
 with c3:
     st.metric("Brands", unique_brands)
+    st.caption(f"📅 {datetime.now().strftime('%Y-%m-%d')}")  # Legg dato rett under Brands
 
 with c5:
     st.metric("Top Technician", top_tech_name, f"{top_tech_reps} repairs")
