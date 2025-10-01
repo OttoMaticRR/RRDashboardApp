@@ -20,8 +20,8 @@ TITLE = "Retail Repair Dashboard"
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
 TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 
-# Auto-refresh every 30 minutes
-st_autorefresh(interval=30 * 60 * 1000, key="auto_refresh_30min")
+# Auto-refresh every 5 minutes
+st_autorefresh(interval=5 * 60 * 1000, key="auto_refresh_5min")
 
 # ----------------------------
 # Authentication
