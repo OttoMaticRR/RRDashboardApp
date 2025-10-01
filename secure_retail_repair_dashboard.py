@@ -17,6 +17,35 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
 
+# Kompakt topplinje/overskrift
+st.markdown("""
+<style>
+/* Skjul Streamlit-header/toolbar (fjerner tomt felt helt øverst) */
+header[data-testid="stHeader"] { height: 0px; visibility: hidden; }
+div[data-testid="stToolbar"]   { visibility: hidden; height: 0px; }
+
+/* Mindre topppadding i hoved-containeren */
+.block-container { padding-top: 0.4rem; }
+
+/* Strammere tittel – mindre margin over/under */
+h1 {
+  margin-top: 0rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Dato til høyre, tettere på tittelen */
+.date-right {
+  text-align: right;
+  font-size: 1.0rem;
+  padding-top: 0.2rem;    /* justér ved behov */
+  margin-bottom: 0; 
+}
+
+/* Liten «dra-opp» effekt på KPI-rad om du vil enda tettere på tittelen */
+.kpi-row { margin-top: -0.2rem; }
+</style>
+""", unsafe_allow_html=True)
+
 # --- KONSTANTER (må komme før de brukes) ---
 TITLE = "Retail Repair Dashboard"
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
