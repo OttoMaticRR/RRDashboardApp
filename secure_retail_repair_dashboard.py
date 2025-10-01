@@ -25,11 +25,21 @@ TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
 <style>
-  /* Mindre luft på siden */
-  .block-container { 
-    padding-top: 1rem; 
-    padding-bottom: 1rem; 
+  /* Mindre luft på toppen/bunnen */
+  .block-container { padding-top: 1rem; padding-bottom: 1rem; }
+
+  /* Større tall på KPI */
+  div[data-testid="stMetricValue"] { font-size: 2.2rem; }
+
+  /* Lik høyde + midtjustert innhold i KPI-kort */
+  div[data-testid="stMetric"]{
+    min-height: 120px;                 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;           
   }
+</style>
+""", unsafe_allow_html=True)
 
   /* KPI-bokser (st.metric) som "cards" */
   div[data-testid="stMetric"] {
