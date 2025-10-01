@@ -129,10 +129,18 @@ def replace_data(df_new: pd.DataFrame):
 # Header (tittel venstre, dato høyre)
 # -------------------------------
 h_left, h_right = st.columns([4, 1])
+
 with h_left:
     st.markdown(f"# {TITLE}")  # Stor tittel
+
 with h_right:
-    st.markdown(f"**{datetime.now().strftime('%Y-%m-%d')}**")
+    st.markdown(
+        f"<div style='text-align:right; font-size:1.2rem; padding-top:0.8rem;'>"
+        f"{datetime.now().strftime('%Y-%m-%d')}"
+        f"</div>",
+        unsafe_allow_html=True
+    )
+
 
 # Skjul "Logged in as"
 # st.caption(f"Logged in as **{name}**")
