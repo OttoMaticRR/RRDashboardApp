@@ -30,10 +30,25 @@ header[data-testid="stHeader"] {
   background: transparent;
 }
 
-div[data-testid="stToolbar"] {
-  display: none;  /* skjul bare Streamlit sin Share/Settings */
-  height: 0;
+/* Ikke skjul hele toolbar – da forsvinner burgeren i noen versjoner */
+div[data-testid="stToolbar"]{
+  height: 2.8rem;               /* lav, men synlig */
+  background: transparent;
 }
+
+/* Skjul alt inni toolbar ... */
+div[data-testid="stToolbar"] *{
+  display: none !important;
+}
+
+/* ... bortsett fra selve burgeren (gamle og nye varianter) */
+div[data-testid="stToolbar"] div[data-testid="collapsedControl"],
+div[data-testid="stToolbar"] button[title="Open sidebar"],
+div[data-testid="stToolbar"] button[title="Toggle sidebar"],
+div[data-testid="stToolbar"] button[aria-label="Open sidebar"],
+div[data-testid="stToolbar"] button[aria-label="Toggle sidebar"],
+div[data-testid="stToolbar"] button[data-testid="baseButton-header"]{
+  display: inline-flex !important;
 
 /* Litt strammere topppadding på innholdet */
 .block-container { padding-top: 0.4rem; }
