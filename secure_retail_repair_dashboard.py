@@ -42,18 +42,21 @@ authenticator = stauth.Authenticate(
     auth_cfg.get("cookie_expiry_days", 7),
 )
 
-auth_status, username, name = authenticator.login(location="main", fields={"Form name": "Login"})
+# Vis skjema (ny API: login() returnerer ingenting, men setter session_state)
+authenticator.login(location="main", fields={"Form name": "Login"})
+
+# Les status fra session_state
+auth_status = st.session_state.get("authentication_status", None)
+name       = st.session_state.get("name", None)
+username   = st.session_state.get("username", None)
 
 if auth_status is None:
+    # Skjemaet er vist, men bruker har ikke (eller feil) sendt inn ennå
     st.stop()
 elif auth_status is False:
     st.error("Invalid username/password")
     st.stop()
-
-if not auth_status:
-    if auth_status is False:
-        st.error("Invalid username/password")
-    st.stop()
+# Hvis True, fortsetter appen videre
 
 # ----------------------------
 # Google Sheets helpers
