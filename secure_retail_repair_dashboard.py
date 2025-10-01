@@ -11,19 +11,13 @@ from google.oauth2.service_account import Credentials
 import streamlit_authenticator as stauth
 from streamlit_autorefresh import st_autorefresh
 
-# -------------------------------
-# Header (tittel venstre, dato høyre)
-# -------------------------------
-h_left, h_right = st.columns([4, 1])
-with h_left:
-    st.markdown(f"# {TITLE}")  # Stor tittel
-with h_right:
-    st.markdown(f"**{datetime.now().strftime('%Y-%m-%d')}**")
   
 # ----------------------------
 # Page config
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
+
+TITLE = "Retail Repair Dashboard"  
 
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
