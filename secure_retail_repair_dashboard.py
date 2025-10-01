@@ -133,8 +133,16 @@ elif auth_status is False:
 # Hvis True, fortsetter appen videre
 
 # ----------------------------
-# Google Sheets helpers
+# Google Sheets helpers (+ støtte for Innlevert)
 # ----------------------------
+
+# Hvilke worksheets som skal brukes (kan overstyres i secrets)
+WORKSHEET_REPARERT  = st.secrets.get("worksheet", "Sheet1")
+WORKSHEET_INNLEVERT = st.secrets.get("worksheet_innlevert", "Sheet2")
+
+# Kolonnenavn som kan forekomme for dato i "Innlevert"
+DATE_COLS = ["Innlevert", "Received date", "Date"]
+
 def gspread_client():
     svc_raw = st.secrets.get("gcp_service_account")
     if isinstance(svc_raw, str):
@@ -153,24 +161,26 @@ def gspread_client():
     return gspread.authorize(creds)
 
 def read_df():
+    """Les data for 'Reparert' fra worksheet WORKSHEET_REPARERT (default Sheet1)."""
     gc = gspread_client()
     sh = gc.open_by_key(st.secrets.get("sheet_id"))
-    ws = sh.worksheet(st.secrets.get("worksheet", "Sheet1"))
+    ws = sh.worksheet(WORKSHEET_REPARERT)
     rows = ws.get_all_records()
     if not rows:
         return pd.DataFrame(columns=["Merke", "Tekniker"])
     return pd.DataFrame(rows)
 
 def replace_data(df_new: pd.DataFrame):
+    """Erstatt data i WORKSHEET_REPARERT (Reparert/Sheet1) med to kolonner: Merke, Tekniker."""
     gc = gspread_client()
     sh = gc.open_by_key(st.secrets.get("sheet_id"))
-    ws_name = st.secrets.get("worksheet", "Sheet1")
+    ws_name = WORKSHEET_REPARERT
     try:
         ws = sh.worksheet(ws_name)
     except Exception:
         ws = sh.add_worksheet(ws_name, rows="1000", cols="10")
 
-    # Map to required columns
+    # Map til riktig kolonner
     def pick(cands, df):
         for c in cands:
             if c in df.columns:
@@ -190,15 +200,132 @@ def replace_data(df_new: pd.DataFrame):
     values = [out.columns.tolist()] + out.fillna("").astype(str).values.tolist()
     ws.update("A1", values)
 
+def read_df_innlevert():
+    """Les data for 'Innlevert' fra worksheet WORKSHEET_INNLEVERT (default Sheet2).
+       Forventer kolonne 'Merke' og en datokolonne (f.eks. 'Innlevert')."""
+    gc = gspread_client()
+    sh = gc.open_by_key(st.secrets.get("sheet_id"))
+    ws = sh.worksheet(WORKSHEET_INNLEVERT)
+    rows = ws.get_all_records()
+    if not rows:
+        return pd.DataFrame(columns=["Merke", "Innlevert"])
+    df = pd.DataFrame(rows)
+
+    # Finn aktuelle kolonner
+    def pick(cands, df_):
+        for c in cands:
+            if c in df_.columns:
+                return c
+        return None
+
+    bcol = pick(BRAND_COLS, df) or "Merke"
+    dcol = pick(DATE_COLS,  df) or "Innlevert"
+
+    # Rens
+    df[bcol] = df[bcol].astype(str).str.strip()
+    df[dcol] = pd.to_datetime(df[dcol], errors="coerce").dt.date
+    df = df[(df[bcol] != "") & df[dcol].notna()]
+
+    out = df[[bcol, dcol]].copy()
+    out.columns = ["Merke", "Innlevert"]
+    return out
+
+
+# ----------------------------
+# Navigasjon (sidebar) + Header
+# ----------------------------
+st.sidebar.title("Dashbord")
+view = st.sidebar.radio("Velg visning", ["Reparert", "Innlevert"], index=0)
+
 # Header (tittel venstre, dato høyre)
 h_left, h_right = st.columns([6, 1])
 with h_left:
-    st.markdown(f"# {TITLE}")
+    st.markdown(f"# {TITLE}")   # Eksisterende tittel
 with h_right:
     st.markdown(
         f"<div class='date-right'>{datetime.now().strftime('%Y-%m-%d')}</div>",
         unsafe_allow_html=True
     )
+
+
+# ----------------------------
+# Innlevert – visning og logikk (kjører bare når valgt)
+# ----------------------------
+def render_innlevert():
+    try:
+        df_inn = read_df_innlevert()
+    except Exception as e:
+        st.error(f"Kunne ikke lese 'Innlevert': {e}")
+        st.stop()
+
+    # KPI-er
+    total_inn = len(df_inn)
+    unique_brands_inn = df_inn["Merke"].nunique()
+    today = datetime.now().date()
+    today_inn = int((df_inn["Innlevert"] == today).sum())
+
+    # Samme KPI-rad som Reparert (tilpass verdier om du ønsker)
+    st.markdown("<div class='kpi-row'>", unsafe_allow_html=True)
+    sp_l, c1, c2, c3, sp_r = st.columns([1, 3, 3, 3, 1], gap="small")
+    with c1:
+        st.metric("Totalt innlevert", total_inn)
+    with c2:
+        st.metric("Merker", unique_brands_inn)
+    with c3:
+        st.metric("Innlevert i dag", today_inn)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Grafer
+    left, right = st.columns(2)
+
+    # Innlevert per merke (bar)
+    per_brand_inn = (df_inn.groupby("Merke").size()
+                     .reset_index(name="Innlevert")
+                     .sort_values("Innlevert", ascending=False, ignore_index=True))
+    with left:
+        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+        st.subheader("Innlevert per merke")
+        if per_brand_inn.empty:
+            st.info("Ingen innleveringer.")
+        else:
+            fig_b = px.bar(per_brand_inn, x="Merke", y="Innlevert", text="Innlevert")
+            fig_b.update_traces(textposition="outside", cliponaxis=False)
+            fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+            st.plotly_chart(fig_b, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Innlevert per dag (linje)
+    per_day = (pd.Series(df_inn["Innlevert"])
+               .value_counts()
+               .rename_axis("Dato")
+               .reset_index(name="Innlevert")
+               .sort_values("Dato"))
+    with right:
+        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+        st.subheader("Innlevert per dag")
+        if per_day.empty:
+            st.info("Ingen innleveringer.")
+        else:
+            fig_d = px.line(per_day, x="Dato", y="Innlevert", markers=True)
+            fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+            st.plotly_chart(fig_d, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Tabell
+    with st.expander("Vis tabell", expanded=False):
+        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+        st.dataframe(df_inn.reset_index(drop=True), use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+# Hvis "Innlevert" er valgt, rendrer vi og stopper videre kjøring (så Reparert-koden din under ikke kjøres)
+if view == "Innlevert":
+    render_innlevert()
+    st.stop()
+
+# Hvis "Reparert" er valgt, fortsetter filen som før
+# (Koden din for 'Reparert' – df = read_df(), KPI, grafer, tabeller, admin-upload – følger videre nedenfor.)
+
 
 
 # Skjul "Logged in as"
