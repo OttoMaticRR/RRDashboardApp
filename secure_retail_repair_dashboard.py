@@ -38,19 +38,38 @@ div[data-testid="stToolbar"] {
 /* Litt strammere topppadding på innholdet */
 .block-container { padding-top: 0.4rem; }
 
-/* --- Tving frem sidebar-hamburger (☰) og plasser den i hjørnet --- */
-div[data-testid="collapsedControl"] {
+/* --- Vis og flytt sidebar-hamburger (fungerer på flere Streamlit-versjoner) --- */
+/* Eldre testid */
+div[data-testid="collapsedControl"],
+/* Nyere varianter (fall-backs) */
+button[title="Open sidebar"],
+button[title="Toggle sidebar"],
+button[aria-label="Open sidebar"],
+button[aria-label="Toggle sidebar"],
+button[data-testid="baseButton-header"] {
   visibility: visible !important;
-  display: block !important;
+  display: inline-flex !important;
   position: fixed !important;
-  top: 10px;
-  left: 10px;
-  z-index: 1001;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  padding: 2px 6px;
+  top: 10px !important;
+  left: 10px !important;
+  z-index: 1001 !important;
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  border-radius: 8px !important;
+  padding: 2px 6px !important;
+  backdrop-filter: blur(4px);
 }
+
+/* Noen temaer gjør knappen transparent – gi den litt ikonfarge */
+button[title="Open sidebar"] svg,
+button[title="Toggle sidebar"] svg,
+button[aria-label="Open sidebar"] svg,
+button[aria-label="Toggle sidebar"] svg,
+button[data-testid="baseButton-header"] svg {
+  fill: currentColor !important;
+  opacity: 0.9 !important;
+}
+
 
 /* --- KPI-kort: lik høyde, midtstilt og "card"-stil --- */
 div[data-testid="stMetric"]{
