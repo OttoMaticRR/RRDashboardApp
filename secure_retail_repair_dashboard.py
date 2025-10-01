@@ -15,7 +15,11 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 # Page config
 # ----------------------------
-st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
+st.set_page_config(
+    page_title="Retail Repair Dashboard",
+    layout="wide",
+    initial_sidebar_state="collapsed"   # <- VIKTIG
+)
 
 # All CSS i ÉN blokk (IKKE fler st.markdown med <style> under)
 css = '''
