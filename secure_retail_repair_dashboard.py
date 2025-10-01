@@ -125,8 +125,6 @@ with h_left:
 with h_right:
     st.markdown(f"**Date:** {datetime.now().strftime('%Y-%m-%d')}")
 
-st.caption(f"Logged in as **{name}**")
-
 # ----------------------------
 # Load and clean data
 # ----------------------------
