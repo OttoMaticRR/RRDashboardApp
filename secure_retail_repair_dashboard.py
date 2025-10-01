@@ -17,7 +17,10 @@ from streamlit_autorefresh import st_autorefresh
 # ----------------------------
 st.set_page_config(page_title="Retail Repair Dashboard", layout="wide")
 
-TITLE = "Retail Repair Dashboard"  
+# --- KONSTANTER (må komme før de brukes) ---
+TITLE = "Retail Repair Dashboard"
+BRAND_COLS = ["Merke", "Product brand", "Brand"]
+TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
