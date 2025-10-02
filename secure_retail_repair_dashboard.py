@@ -327,13 +327,12 @@ def render_innlevert():
         st.stop()
 
     # KPI-er
-    total_inn = len(df_inn)
-    unique_brands_inn = df_inn["Merke"].nunique()
+    total_inn = len(df_inn)                       # antall rader (uten header – get_all_records dropper header)
+    unique_brands_inn = df_inn["Merke"].nunique() # unike merker
     today = datetime.now().date()
-    today_inn = int((df_inn["Innlevert"] == today).sum())
+    today_inn = int((df_inn["Innlevert"] == today).sum())  # innlevert i dag
 
-    # Samme KPI-rad som Reparert (tilpass verdier om du ønsker)
-    st.markdown("<div class='kpi-row'>", unsafe_allow_html=True)
+    # KPI-rad
     sp_l, c1, c2, c3, sp_r = st.columns([1, 3, 3, 3, 1], gap="small")
     with c1:
         st.metric("Totalt innlevert", total_inn)
@@ -341,49 +340,50 @@ def render_innlevert():
         st.metric("Merker", unique_brands_inn)
     with c3:
         st.metric("Innlevert i dag", today_inn)
-    st.markdown("</div>", unsafe_allow_html=True)
 
-    # Grafer
+    # ----- Grafer -----
     left, right = st.columns(2)
 
     # Innlevert per merke (bar)
-    per_brand_inn = (df_inn.groupby("Merke").size()
-                     .reset_index(name="Innlevert")
-                     .sort_values("Innlevert", ascending=False, ignore_index=True))
+    per_brand_inn = (
+        df_inn.groupby("Merke").size()
+        .reset_index(name="Innlevert")
+        .sort_values("Innlevert", ascending=False, ignore_index=True)
+    )
     with left:
-        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-        st.subheader("Innlevert per merke")
-        if per_brand_inn.empty:
-            st.info("Ingen innleveringer.")
-        else:
-            fig_b = px.bar(per_brand_inn, x="Merke", y="Innlevert", text="Innlevert")
-            fig_b.update_traces(textposition="outside", cliponaxis=False)
-            fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
-            st.plotly_chart(fig_b, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):  # ekte "card" uten ekstra tom rad
+            st.subheader("Innlevert per merke")
+            if per_brand_inn.empty:
+                st.info("Ingen innleveringer.")
+            else:
+                fig_b = px.bar(per_brand_inn, x="Merke", y="Innlevert", text="Innlevert")
+                fig_b.update_traces(textposition="outside", cliponaxis=False)
+                fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+                st.plotly_chart(fig_b, use_container_width=True)
 
     # Innlevert per dag (linje)
-    per_day = (pd.Series(df_inn["Innlevert"])
-               .value_counts()
-               .rename_axis("Dato")
-               .reset_index(name="Innlevert")
-               .sort_values("Dato"))
+    per_day = (
+        pd.Series(df_inn["Innlevert"])
+        .value_counts()
+        .rename_axis("Dato")
+        .reset_index(name="Innlevert")
+        .sort_values("Dato")
+    )
     with right:
-        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-        st.subheader("Innlevert per dag")
-        if per_day.empty:
-            st.info("Ingen innleveringer.")
-        else:
-            fig_d = px.line(per_day, x="Dato", y="Innlevert", markers=True)
-            fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
-            st.plotly_chart(fig_d, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.subheader("Innlevert per dag")
+            if per_day.empty:
+                st.info("Ingen innleveringer.")
+            else:
+                fig_d = px.line(per_day, x="Dato", y="Innlevert", markers=True)
+                fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+                st.plotly_chart(fig_d, use_container_width=True)
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
-        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-        st.dataframe(df_inn.reset_index(drop=True), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.dataframe(df_inn.reset_index(drop=True), use_container_width=True)
+
 
 
 # Hvis "Innlevert" er valgt, rendrer vi og stopper videre kjøring (så Reparert-koden din under ikke kjøres)
