@@ -253,14 +253,15 @@ def replace_data(df_new: pd.DataFrame):
     ws.update("A1", values)
 
 def read_df_innlevert():
-    """Les data for 'Innlevert' fra worksheet WORKSHEET_INNLEVERT (default Sheet2).
+    """Les 'Innlevert' fra WORKSHEET_INNLEVERT (default Sheet2).
        Forventer kolonne 'Merke' og en datokolonne (f.eks. 'Innlevert')."""
     gc = gspread_client()
     sh = gc.open_by_key(st.secrets.get("sheet_id"))
     ws = sh.worksheet(WORKSHEET_INNLEVERT)
-    rows = ws.get_all_records()
+    rows = ws.get_all_records()  # allerede uten header-rad
     if not rows:
         return pd.DataFrame(columns=["Merke", "Innlevert"])
+
     df = pd.DataFrame(rows)
 
     # Finn aktuelle kolonner
@@ -273,14 +274,29 @@ def read_df_innlevert():
     bcol = pick(BRAND_COLS, df) or "Merke"
     dcol = pick(DATE_COLS,  df) or "Innlevert"
 
-    # Rens
+    # Rens merke
     df[bcol] = df[bcol].astype(str).str.strip()
-    df[dcol] = pd.to_datetime(df[dcol], errors="coerce").dt.date
+
+    # --- Robust parsing av dato ---
+    # 1) Prøv DD.MM.YYYY (dayfirst) og andre tekstformater
+    dates = pd.to_datetime(df[dcol], errors="coerce", dayfirst=True, infer_datetime_format=True)
+
+    # 2) Fallback: Excel-seriedato (antall dager siden 1899-12-30)
+    needs_excel = dates.isna()
+    if needs_excel.any():
+        as_num = pd.to_numeric(df.loc[needs_excel, dcol], errors="coerce")
+        conv = pd.to_datetime(as_num, errors="coerce", unit="D", origin="1899-12-30")
+        dates.loc[needs_excel] = conv
+
+    df[dcol] = dates.dt.date
+
+    # Behold kun gyldige rader
     df = df[(df[bcol] != "") & df[dcol].notna()]
 
     out = df[[bcol, dcol]].copy()
     out.columns = ["Merke", "Innlevert"]
     return out
+
 
 
 # ----------------------------
