@@ -11,7 +11,29 @@ from google.oauth2.service_account import Credentials
 import streamlit_authenticator as stauth
 from streamlit_autorefresh import st_autorefresh
 import locale
-locale.setlocale(locale.LC_TIME, "nb_NO.UTF-8")  # Norsk datoformat
+NOR_MONTHS = [
+    "januar", "februar", "mars", "april", "mai", "juni",
+    "juli", "august", "september", "oktober", "november", "desember"
+]
+
+def format_no_date(d):
+    """Returner '3. oktober 2025' for en date/datetime (norsk, uten locale)."""
+    if d is None:
+        return "-"
+    # pandas NaT-sjekk
+    try:
+        import pandas as pd
+        if pd.isna(d):
+            return "-"
+    except Exception:
+        pass
+    from datetime import datetime, date
+    if isinstance(d, datetime):
+        d = d.date()
+    day = d.day
+    month = NOR_MONTHS[d.month - 1]
+    year = d.year
+    return f"{day}. {month} {year}"
 
   
 # ----------------------------
@@ -373,9 +395,9 @@ with h_left:
     st.markdown(f"# {TITLE}")   # Eksisterende tittel
 with h_right:
     st.markdown(
-    f"<div class='date-right'>{datetime.now().strftime('%-d. %B %Y')}</div>",
-    unsafe_allow_html=True
-)
+        f"<div class='date-right'>{format_no_date(datetime.now())}</div>",
+        unsafe_allow_html=True
+    )
 
 
 # ----------------------------
@@ -465,7 +487,7 @@ def render_inhouse():
     # KPI-er
     total_inhouse = len(df_inh)
     eldste = df_inh["Dato"].min() if not df_inh.empty else None
-    eldste_txt = eldste.strftime("%-d. %B %Y") if eldste else "-"
+    eldste_txt = format_no_date(eldste) if eldste else "-"
 
     top_brand = "-"
     top_brand_count = 0
