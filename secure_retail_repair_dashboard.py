@@ -304,7 +304,7 @@ def read_df_innlevert():
   
 def read_df_inhouse():
     """Les 'Inhouse' fra WORKSHEET_INHOUSE.
-       Forventer kolonne A=Merke, B=Status, C=Dato (dato kan være tekst eller Excel-seriedato)."""
+       Forventer A=Merke, B=Status/Statustekst, C=Statusdato/Dato (tekst eller Excel-seriedato)."""
     gc = gspread_client()
     sh = gc.open_by_key(st.secrets.get("sheet_id"))
     ws = sh.worksheet(WORKSHEET_INHOUSE)
@@ -314,35 +314,49 @@ def read_df_inhouse():
 
     df = pd.DataFrame(rows)
 
-    # Finn aktuelle kolonner
-    def pick(cands, _df):
-        for c in cands:
-            if c in _df.columns:
-                return c
+    # Case-insensitive plukking av kolonner
+    colmap = {c.lower().strip(): c for c in df.columns}
+
+    def pick_casefold(cands):
+        for cand in cands:
+            real = colmap.get(cand.lower())
+            if real:
+                return real
         return None
 
-    bcol = pick(BRAND_COLS,  df) or "Merke"
-    scol = pick(STATUS_COLS, df) or "Status"
-    dcol = pick(DATE_COLS,   df) or "Dato"
+    brand_col  = pick_casefold(["Merke", "Product brand", "Brand"])
+    status_col = pick_casefold(["Statustekst", "Status", "Repair status", "State"])
+    date_col   = pick_casefold(["Statusdato", "Dato", "Innlevert", "Received date", "Date"])
 
-    # Rens / normaliser
-    df[bcol] = df[bcol].astype(str).str.strip()
-    df[scol] = df[scol].astype(str).str.strip()
+    # Snill feilmelding hvis noe mangler
+    missing = []
+    if brand_col is None:  missing.append("Merke")
+    if status_col is None: missing.append("Statustekst/Status")
+    if date_col is None:   missing.append("Statusdato/Dato")
+    if missing:
+        raise KeyError(", ".join(missing))
 
-    # Robust dato-parsing: prøv DD.MM.YYYY først, deretter Excel-seriedato
-    dates = pd.to_datetime(df[dcol], errors="coerce", dayfirst=True, infer_datetime_format=True)
+    # Rens tekst
+    df[brand_col]  = df[brand_col].astype(str).str.strip()
+    df[status_col] = df[status_col].astype(str).str.strip()
+
+    # Robust dato-parsing (tekst + Excel-seriedato)
+    dates = pd.to_datetime(df[date_col], errors="coerce", dayfirst=True, infer_datetime_format=True)
     needs_excel = dates.isna()
     if needs_excel.any():
-        as_num = pd.to_numeric(df.loc[needs_excel, dcol], errors="coerce")
+        as_num = pd.to_numeric(df.loc[needs_excel, date_col], errors="coerce")
         conv = pd.to_datetime(as_num, errors="coerce", unit="D", origin="1899-12-30")
         dates.loc[needs_excel] = conv
-    df[dcol] = dates.dt.date
+    df[date_col] = dates.dt.date
 
     # Behold gyldige rader
-    df = df[(df[bcol] != "") & (df[scol] != "") & df[dcol].notna()].copy()
+    df = df[(df[brand_col] != "") & (df[status_col] != "") & df[date_col].notna()].copy()
 
-    out = df[[bcol, scol, dcol]].rename(columns={bcol: "Merke", scol: "Status", dcol: "Dato"})
+    # STANDARDISER alltid til disse tre navnene:
+    out = df[[brand_col, status_col, date_col]].copy()
+    out.columns = ["Merke", "Status", "Dato"]
     return out
+
 
 
 
