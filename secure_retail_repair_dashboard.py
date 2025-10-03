@@ -526,12 +526,11 @@ def render_inhouse():
                 fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_s, use_container_width=True)
 
-    # Søyle: antall per dato  (erstatter tidligere linjediagram)
+# Søyle: antall per dato  (erstatter tidligere linjediagram)
 per_day = (
-    df_inh["Dato"].value_counts()
-    .rename_axis("Dato")
-    .reset_index(name="Antall")
-    .sort_values("Dato")
+    df_inh.groupby("Dato").size()
+         .reset_index(name="Antall")
+         .sort_values("Dato")
 )
 with right:
     st.markdown('<div class="rr-card">', unsafe_allow_html=True)
