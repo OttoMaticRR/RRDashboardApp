@@ -304,7 +304,7 @@ def read_df_innlevert():
   
 def read_df_inhouse():
     """Les 'Inhouse' fra WORKSHEET_INHOUSE.
-       Forventer A=Merke, B=Status/Statustekst, C=Statusdato/Dato (tekst eller Excel-seriedato)."""
+       Forventer A=Merke, B=Statustekst, C=Statusdato (tekst eller Excel-seriedato)."""
     gc = gspread_client()
     sh = gc.open_by_key(st.secrets.get("sheet_id"))
     ws = sh.worksheet(WORKSHEET_INHOUSE)
