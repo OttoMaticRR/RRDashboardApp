@@ -107,10 +107,15 @@ TITLE = "Retail Repair Dashboard"
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
 TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 
-# For “Innlevert”
-DATE_COLS = ["Innlevert", "Received date", "Date"]
-WORKSHEET_REPARERT  = st.secrets.get("worksheet", "Sheet1")
-WORKSHEET_INNLEVERT = st.secrets.get("worksheet_innlevert", "Sheet2")
+# Felles kandidater (robust på kolonnenavn)
+BRAND_COLS = ["Merke", "Product brand", "Brand"]
+STATUS_COLS = ["Status", "Repair status", "State"]
+DATE_COLS   = ["Dato", "Innlevert", "Received date", "Date"]
+
+# Hvilke arkfaner (kan overstyres i secrets)
+WORKSHEET_REPARERT   = st.secrets.get("worksheet", "Sheet1")
+WORKSHEET_INNLEVERT  = st.secrets.get("worksheet_innlevert", "Sheet2")
+WORKSHEET_INHOUSE    = st.secrets.get("worksheet_inhouse", "Sheet3")  # NY
 
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
@@ -296,14 +301,55 @@ def read_df_innlevert():
     out = df[[bcol, dcol]].copy()
     out.columns = ["Merke", "Innlevert"]
     return out
+  
+def read_df_inhouse():
+    """Les 'Inhouse' fra WORKSHEET_INHOUSE.
+       Forventer kolonne A=Merke, B=Status, C=Dato (dato kan være tekst eller Excel-seriedato)."""
+    gc = gspread_client()
+    sh = gc.open_by_key(st.secrets.get("sheet_id"))
+    ws = sh.worksheet(WORKSHEET_INHOUSE)
+    rows = ws.get_all_records()
+    if not rows:
+        return pd.DataFrame(columns=["Merke", "Status", "Dato"])
+
+    df = pd.DataFrame(rows)
+
+    # Finn aktuelle kolonner
+    def pick(cands, _df):
+        for c in cands:
+            if c in _df.columns:
+                return c
+        return None
+
+    bcol = pick(BRAND_COLS,  df) or "Merke"
+    scol = pick(STATUS_COLS, df) or "Status"
+    dcol = pick(DATE_COLS,   df) or "Dato"
+
+    # Rens / normaliser
+    df[bcol] = df[bcol].astype(str).str.strip()
+    df[scol] = df[scol].astype(str).str.strip()
+
+    # Robust dato-parsing: prøv DD.MM.YYYY først, deretter Excel-seriedato
+    dates = pd.to_datetime(df[dcol], errors="coerce", dayfirst=True, infer_datetime_format=True)
+    needs_excel = dates.isna()
+    if needs_excel.any():
+        as_num = pd.to_numeric(df.loc[needs_excel, dcol], errors="coerce")
+        conv = pd.to_datetime(as_num, errors="coerce", unit="D", origin="1899-12-30")
+        dates.loc[needs_excel] = conv
+    df[dcol] = dates.dt.date
+
+    # Behold gyldige rader
+    df = df[(df[bcol] != "") & (df[scol] != "") & df[dcol].notna()].copy()
+
+    out = df[[bcol, scol, dcol]].rename(columns={bcol: "Merke", scol: "Status", dcol: "Dato"})
+    return out
 
 
 
 # ----------------------------
 # Navigasjon (sidebar) + Header
 # ----------------------------
-st.sidebar.title("Dashbord")
-view = st.sidebar.radio("Velg visning", ["Reparert", "Innlevert"], index=0)
+view = st.sidebar.radio("Velg visning", ["Reparert", "Innlevert", "Inhouse"], index=0)
 
 # Header (tittel venstre, dato høyre)
 h_left, h_right = st.columns([6, 1])
@@ -390,6 +436,10 @@ def render_innlevert():
 if view == "Innlevert":
     render_innlevert()
     st.stop()
+elif view == "Inhouse":
+    render_inhouse()
+    st.stop()
+
 
 # Hvis "Reparert" er valgt, fortsetter filen som før
 # (Koden din for 'Reparert' – df = read_df(), KPI, grafer, tabeller, admin-upload – følger videre nedenfor.)
@@ -398,6 +448,79 @@ if view == "Innlevert":
 
 # Skjul "Logged in as"
 # st.caption(f"Logged in as **{name}**")
+
+def render_inhouse():
+    try:
+        df_inh = read_df_inhouse()
+    except Exception as e:
+        st.error(f"Kunne ikke lese 'Inhouse': {e}")
+        st.stop()
+
+    # KPIer
+    total_inhouse = len(df_inh)
+    eldste = df_inh["Dato"].min() if not df_inh.empty else None
+    eldste_txt = eldste.strftime("%Y-%m-%d") if eldste else "-"
+
+    top_brand = "-"
+    top_brand_count = 0
+    if not df_inh.empty:
+        vc = df_inh["Merke"].value_counts()
+        if not vc.empty:
+            top_brand = vc.idxmax()
+            top_brand_count = int(vc.max())
+
+    # KPI-rad
+    st.markdown("<div class='kpi-row'>", unsafe_allow_html=True)
+    sp_l, c1, c2, c3, sp_r = st.columns([1, 3, 3, 3, 1], gap="small")
+    with c1:
+        st.metric("Total", total_inhouse)
+    with c2:
+        st.metric("Eldste Inhouse", eldste_txt)
+    with c3:
+        # legg evt. telleren som "delta" for litt glød
+        st.metric("Topp-merke", top_brand, f"{top_brand_count} stk" if top_brand_count else None)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Grafer
+    left, right = st.columns(2)
+
+    # Bar: antall per status
+    per_status = (df_inh.groupby("Status").size()
+                  .reset_index(name="Antall")
+                  .sort_values("Antall", ascending=False, ignore_index=True))
+    with left:
+        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+        st.subheader("Antall per status")
+        if per_status.empty:
+            st.info("Ingen inhouse-rader.")
+        else:
+            fig_s = px.bar(per_status, x="Status", y="Antall", text="Antall")
+            fig_s.update_traces(textposition="outside", cliponaxis=False)
+            fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+            st.plotly_chart(fig_s, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Linje: antall per dato
+    per_day = (df_inh["Dato"].value_counts()
+               .rename_axis("Dato")
+               .reset_index(name="Antall")
+               .sort_values("Dato"))
+    with right:
+        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+        st.subheader("Antall per dato")
+        if per_day.empty:
+            st.info("Ingen inhouse-rader.")
+        else:
+            fig_d = px.line(per_day, x="Dato", y="Antall", markers=True)
+            fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+            st.plotly_chart(fig_d, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Tabell (valgfri)
+    with st.expander("Vis tabell", expanded=False):
+        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+        st.dataframe(df_inh.reset_index(drop=True), use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ----------------------------
