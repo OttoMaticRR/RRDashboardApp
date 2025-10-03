@@ -526,22 +526,24 @@ def render_inhouse():
                 fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_s, use_container_width=True)
 
-    # Linje: antall per dato
-    per_day = (
-        df_inh["Dato"].value_counts()
-        .rename_axis("Dato")
-        .reset_index(name="Antall")
-        .sort_values("Dato")
-    )
-    with right:
-        with st.container(border=True):
-            st.subheader("Antall per dato")
-            if per_day.empty:
-                st.info("Ingen inhouse-rader.")
-            else:
-                fig_d = px.line(per_day, x="Dato", y="Antall", markers=True)
-                fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
-                st.plotly_chart(fig_d, use_container_width=True)
+    # Søyle: antall per dato  (erstatter tidligere linjediagram)
+per_day = (
+    df_inh["Dato"].value_counts()
+    .rename_axis("Dato")
+    .reset_index(name="Antall")
+    .sort_values("Dato")
+)
+with right:
+    st.markdown('<div class="rr-card">', unsafe_allow_html=True)
+    st.subheader("Antall per dato")
+    if per_day.empty:
+        st.info("Ingen inhouse-rader.")
+    else:
+        fig_d = px.bar(per_day, x="Dato", y="Antall", text="Antall")
+        fig_d.update_traces(textposition="outside", cliponaxis=False)
+        fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+        st.plotly_chart(fig_d, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
