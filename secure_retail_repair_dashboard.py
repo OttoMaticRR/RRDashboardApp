@@ -431,16 +431,6 @@ def render_innlevert():
             st.dataframe(df_inn.reset_index(drop=True), use_container_width=True)
 
 
-
-# Hvis "Innlevert" er valgt, rendrer vi og stopper videre kjøring (så Reparert-koden din under ikke kjøres)
-if view == "Innlevert":
-    render_innlevert()
-    st.stop()
-elif view == "Inhouse":
-    render_inhouse()
-    st.stop()
-
-
 # Hvis "Reparert" er valgt, fortsetter filen som før
 # (Koden din for 'Reparert' – df = read_df(), KPI, grafer, tabeller, admin-upload – følger videre nedenfor.)
 
@@ -521,6 +511,15 @@ def render_inhouse():
         st.markdown('<div class="rr-card">', unsafe_allow_html=True)
         st.dataframe(df_inh.reset_index(drop=True), use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
+# ----------------------------
+# Ruting mellom visninger (må komme ETTER at funksjonene er definert)
+# ----------------------------
+if view == "Innlevert":
+    render_innlevert()
+    st.stop()
+elif view == "Inhouse":
+    render_inhouse()
+    st.stop()
 
 
 # ----------------------------
