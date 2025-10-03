@@ -506,14 +506,14 @@ def render_inhouse():
     with c3:
         st.metric("Topp-merke", top_brand, f"{top_brand_count} stk" if top_brand_count else None)
 
-    # Grafer (bruk container(border=True) for å unngå «tomme» bokser)
+    # Grafer
     left, right = st.columns(2)
 
     # Bar: antall per status
     per_status = (
         df_inh.groupby("Status").size()
-        .reset_index(name="Antall")
-        .sort_values("Antall", ascending=False, ignore_index=True)
+             .reset_index(name="Antall")
+             .sort_values("Antall", ascending=False, ignore_index=True)
     )
     with left:
         with st.container(border=True):
@@ -526,28 +526,28 @@ def render_inhouse():
                 fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_s, use_container_width=True)
 
-# Søyle: antall per dato  (erstatter tidligere linjediagram)
-per_day = (
-    df_inh.groupby("Dato").size()
-         .reset_index(name="Antall")
-         .sort_values("Dato")
-)
-with right:
-    st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-    st.subheader("Antall per dato")
-    if per_day.empty:
-        st.info("Ingen inhouse-rader.")
-    else:
-        fig_d = px.bar(per_day, x="Dato", y="Antall", text="Antall")
-        fig_d.update_traces(textposition="outside", cliponaxis=False)
-        fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
-        st.plotly_chart(fig_d, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Bar: antall per dato (søyle i stedet for linje)
+    per_day = (
+        df_inh.groupby("Dato").size()
+             .reset_index(name="Antall")
+             .sort_values("Dato")
+    )
+    with right:
+        with st.container(border=True):
+            st.subheader("Antall per dato")
+            if per_day.empty:
+                st.info("Ingen inhouse-rader.")
+            else:
+                fig_d = px.bar(per_day, x="Dato", y="Antall", text="Antall")
+                fig_d.update_traces(textposition="outside", cliponaxis=False)
+                fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+                st.plotly_chart(fig_d, use_container_width=True)
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
         with st.container(border=True):
             st.dataframe(df_inh.reset_index(drop=True), use_container_width=True)
+
 
 # ----------------------------
 # Ruting mellom visninger (må komme ETTER at funksjonene er definert)
