@@ -460,7 +460,7 @@ def render_inhouse():
         st.error(f"Kunne ikke lese 'Inhouse': {e}")
         st.stop()
 
-    # KPIer
+    # KPI-er
     total_inhouse = len(df_inh)
     eldste = df_inh["Dato"].min() if not df_inh.empty else None
     eldste_txt = eldste.strftime("%Y-%m-%d") if eldste else "-"
@@ -474,57 +474,56 @@ def render_inhouse():
             top_brand_count = int(vc.max())
 
     # KPI-rad
-    st.markdown("<div class='kpi-row'>", unsafe_allow_html=True)
     sp_l, c1, c2, c3, sp_r = st.columns([1, 3, 3, 3, 1], gap="small")
     with c1:
         st.metric("Total", total_inhouse)
     with c2:
         st.metric("Eldste Inhouse", eldste_txt)
     with c3:
-        # legg evt. telleren som "delta" for litt glød
         st.metric("Topp-merke", top_brand, f"{top_brand_count} stk" if top_brand_count else None)
-    st.markdown("</div>", unsafe_allow_html=True)
 
-    # Grafer
+    # Grafer (bruk container(border=True) for å unngå «tomme» bokser)
     left, right = st.columns(2)
 
     # Bar: antall per status
-    per_status = (df_inh.groupby("Status").size()
-                  .reset_index(name="Antall")
-                  .sort_values("Antall", ascending=False, ignore_index=True))
+    per_status = (
+        df_inh.groupby("Status").size()
+        .reset_index(name="Antall")
+        .sort_values("Antall", ascending=False, ignore_index=True)
+    )
     with left:
-        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-        st.subheader("Antall per status")
-        if per_status.empty:
-            st.info("Ingen inhouse-rader.")
-        else:
-            fig_s = px.bar(per_status, x="Status", y="Antall", text="Antall")
-            fig_s.update_traces(textposition="outside", cliponaxis=False)
-            fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
-            st.plotly_chart(fig_s, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.subheader("Antall per status")
+            if per_status.empty:
+                st.info("Ingen inhouse-rader.")
+            else:
+                fig_s = px.bar(per_status, x="Status", y="Antall", text="Antall")
+                fig_s.update_traces(textposition="outside", cliponaxis=False)
+                fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+                st.plotly_chart(fig_s, use_container_width=True)
 
     # Linje: antall per dato
-    per_day = (df_inh["Dato"].value_counts()
-               .rename_axis("Dato")
-               .reset_index(name="Antall")
-               .sort_values("Dato"))
+    per_day = (
+        df_inh["Dato"].value_counts()
+        .rename_axis("Dato")
+        .reset_index(name="Antall")
+        .sort_values("Dato")
+    )
     with right:
-        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-        st.subheader("Antall per dato")
-        if per_day.empty:
-            st.info("Ingen inhouse-rader.")
-        else:
-            fig_d = px.line(per_day, x="Dato", y="Antall", markers=True)
-            fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
-            st.plotly_chart(fig_d, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.subheader("Antall per dato")
+            if per_day.empty:
+                st.info("Ingen inhouse-rader.")
+            else:
+                fig_d = px.line(per_day, x="Dato", y="Antall", markers=True)
+                fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+                st.plotly_chart(fig_d, use_container_width=True)
 
-    # Tabell (valgfri)
+    # Tabell
     with st.expander("Vis tabell", expanded=False):
-        st.markdown('<div class="rr-card">', unsafe_allow_html=True)
-        st.dataframe(df_inh.reset_index(drop=True), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.dataframe(df_inh.reset_index(drop=True), use_container_width=True)
+
 # ----------------------------
 # Ruting mellom visninger (må komme ETTER at funksjonene er definert)
 # ----------------------------
