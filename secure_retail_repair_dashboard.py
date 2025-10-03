@@ -331,8 +331,8 @@ def read_df_inhouse():
     # Snill feilmelding hvis noe mangler
     missing = []
     if brand_col is None:  missing.append("Merke")
-    if status_col is None: missing.append("Statustekst/Status")
-    if date_col is None:   missing.append("Statusdato/Dato")
+    if status_col is None: missing.append("Statustekst")
+    if date_col is None:   missing.append("Statusdato")
     if missing:
         raise KeyError(", ".join(missing))
 
