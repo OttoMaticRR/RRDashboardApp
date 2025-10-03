@@ -10,6 +10,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 import streamlit_authenticator as stauth
 from streamlit_autorefresh import st_autorefresh
+import locale
+locale.setlocale(locale.LC_TIME, "nb_NO.UTF-8")  # Norsk datoformat
 
   
 # ----------------------------
@@ -371,9 +373,9 @@ with h_left:
     st.markdown(f"# {TITLE}")   # Eksisterende tittel
 with h_right:
     st.markdown(
-        f"<div class='date-right'>{datetime.now().strftime('%Y-%m-%d')}</div>",
-        unsafe_allow_html=True
-    )
+    f"<div class='date-right'>{datetime.now().strftime('%-d. %B %Y')}</div>",
+    unsafe_allow_html=True
+)
 
 
 # ----------------------------
@@ -463,7 +465,7 @@ def render_inhouse():
     # KPI-er
     total_inhouse = len(df_inh)
     eldste = df_inh["Dato"].min() if not df_inh.empty else None
-    eldste_txt = eldste.strftime("%Y-%m-%d") if eldste else "-"
+    eldste_txt = eldste.strftime("%-d. %B %Y") if eldste else "-"
 
     top_brand = "-"
     top_brand_count = 0
