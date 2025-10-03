@@ -109,8 +109,8 @@ TECH_COLS  = ["Tekniker", "Service technician", "Technician"]
 
 # Felles kandidater (robust på kolonnenavn)
 BRAND_COLS = ["Merke", "Product brand", "Brand"]
-STATUS_COLS = ["Status", "Repair status", "State"]
-DATE_COLS   = ["Dato", "Innlevert", "Received date", "Date"]
+STATUS_COLS = ["Statustekst", "Status", "Repair status", "State"]
+DATE_COLS   = ["Statusdato", "Dato", "Innlevert", "Received date", "Date"]
 
 # Hvilke arkfaner (kan overstyres i secrets)
 WORKSHEET_REPARERT   = st.secrets.get("worksheet", "Sheet1")
