@@ -509,10 +509,10 @@ def render_innlevert():
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
-    with st.container(border=True):
-        df_show = df_inn.copy()
-        df_show.index = range(1, len(df_show) + 1)  # 1-basert indeks
-        st.dataframe(df_show, use_container_width=True)
+        with st.container(border=True):
+            df_show = df_inn.copy()
+            df_show.index = range(1, len(df_show) + 1)  # 1-basert indeks
+            st.dataframe(df_show, use_container_width=True)
 
 
 # Hvis "Reparert" er valgt, fortsetter filen som før
@@ -591,12 +591,10 @@ def render_inhouse():
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
-    with st.container(border=True):
-        df_show = df_inh.copy()
-        df_show.index = range(1, len(df_show) + 1)
-        st.dataframe(df_show, use_container_width=True)
-
-
+        with st.container(border=True):
+            df_show = df_inh.copy()
+            df_show.index = range(1, len(df_show) + 1)
+            st.dataframe(df_show, use_container_width=True)
 
 # ----------------------------
 # Ruting mellom visninger (må komme ETTER at funksjonene er definert)
