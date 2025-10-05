@@ -387,7 +387,51 @@ def read_df_inhouse():
 # ----------------------------
 # Navigasjon (sidebar) + Header
 # ----------------------------
-view = st.sidebar.radio("Velg visning", ["Reparert", "Innlevert", "Inhouse"], index=0)
+# --- Custom sidebar-meny (erstatter radio) ---
+# Les valgt fane fra URL (?view=Reparert|Innlevert|Inhouse)
+qp = st.query_params
+view = qp.get("view") or "Reparert"
+if isinstance(view, list):  # sikkerhet hvis miljøet returnerer liste
+    view = view[0]
+
+# Stil + HTML for menyen
+st.sidebar.markdown(f"""
+<style>
+.sidebar-menu {{
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  margin-top: 6px;
+}}
+.sidebar-menu .menu-item {{
+  display: flex; align-items: center; gap: 10px;
+  color: #cfd3d7; text-decoration: none;
+  padding: 10px 14px; border-radius: 10px;
+  transition: all .18s ease-in-out;
+}}
+.sidebar-menu .menu-item:hover {{
+  background: rgba(255,255,255,0.08); color: #fff;
+}}
+.sidebar-menu .menu-item.active {{
+  background: #e73f3f; color: #fff;
+  box-shadow: 0 6px 16px rgba(231,63,63,.35);
+}}
+.sidebar-menu .emoji {{
+  width: 20px; display: inline-flex; justify-content: center;
+}}
+</style>
+
+<div class="sidebar-menu">
+  <a href="?view=Reparert"  class="menu-item{' active' if view=='Reparert'  else ''}">
+    <span class="emoji">🧰</span> Reparert
+  </a>
+  <a href="?view=Innlevert" class="menu-item{' active' if view=='Innlevert' else ''}">
+    <span class="emoji">📦</span> Innlevert
+  </a>
+  <a href="?view=Inhouse"   class="menu-item{' active' if view=='Inhouse'   else ''}">
+    <span class="emoji">🏠</span> Inhouse
+  </a>
+</div>
+""", unsafe_allow_html=True)
+
 
 # Header (tittel venstre, dato høyre)
 h_left, h_right = st.columns([6, 1])
