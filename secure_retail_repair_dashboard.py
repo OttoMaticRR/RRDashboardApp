@@ -243,6 +243,7 @@ def gspread_client():
     return gspread.authorize(creds)
 
 
+@st.cache_data(ttl=300, show_spinner=False)  # 5 min cache – juster fritt
 def read_df():
     """Les data for 'Reparert' fra worksheet WORKSHEET_REPARERT (default Sheet1)."""
     gc = gspread_client()
@@ -253,43 +254,14 @@ def read_df():
         return pd.DataFrame(columns=["Merke", "Tekniker"])
     return pd.DataFrame(rows)
 
-def replace_data(df_new: pd.DataFrame):
-    """Erstatt data i WORKSHEET_REPARERT (Reparert/Sheet1) med to kolonner: Merke, Tekniker."""
-    gc = gspread_client()
-    sh = gc.open_by_key(st.secrets.get("sheet_id"))
-    ws_name = WORKSHEET_REPARERT
-    try:
-        ws = sh.worksheet(ws_name)
-    except Exception:
-        ws = sh.add_worksheet(ws_name, rows="1000", cols="10")
 
-    # Map til riktig kolonner
-    def pick(cands, df):
-        for c in cands:
-            if c in df.columns:
-                return c
-        return None
-
-    bcol = pick(BRAND_COLS, df_new)
-    tcol = pick(TECH_COLS,  df_new)
-
-    if bcol is None or tcol is None:
-        raise ValueError(f"Expected columns {BRAND_COLS} and {TECH_COLS}, got {list(df_new.columns)}")
-
-    out = df_new[[bcol, tcol]].copy()
-    out.columns = ["Merke", "Tekniker"]
-
-    ws.clear()
-    values = [out.columns.tolist()] + out.fillna("").astype(str).values.tolist()
-    ws.update("A1", values)
-
+@st.cache_data(ttl=300, show_spinner=False)
 def read_df_innlevert():
-    """Les 'Innlevert' fra WORKSHEET_INNLEVERT (default Sheet2).
-       Forventer kolonne 'Merke' og en datokolonne (f.eks. 'Innlevert')."""
+    """Les 'Innlevert' fra WORKSHEET_INNLEVERT (default Sheet2)."""
     gc = gspread_client()
     sh = gc.open_by_key(st.secrets.get("sheet_id"))
     ws = sh.worksheet(WORKSHEET_INNLEVERT)
-    rows = ws.get_all_records()  # allerede uten header-rad
+    rows = ws.get_all_records()
     if not rows:
         return pd.DataFrame(columns=["Merke", "Innlevert"])
 
@@ -305,29 +277,23 @@ def read_df_innlevert():
     bcol = pick(BRAND_COLS, df) or "Merke"
     dcol = pick(DATE_COLS,  df) or "Innlevert"
 
-    # Rens merke
+    # Rens og robust dato-parsing
     df[bcol] = df[bcol].astype(str).str.strip()
-
-    # --- Robust parsing av dato ---
-    # 1) Prøv DD.MM.YYYY (dayfirst) og andre tekstformater
     dates = pd.to_datetime(df[dcol], errors="coerce", dayfirst=True, infer_datetime_format=True)
-
-    # 2) Fallback: Excel-seriedato (antall dager siden 1899-12-30)
     needs_excel = dates.isna()
     if needs_excel.any():
         as_num = pd.to_numeric(df.loc[needs_excel, dcol], errors="coerce")
         conv = pd.to_datetime(as_num, errors="coerce", unit="D", origin="1899-12-30")
         dates.loc[needs_excel] = conv
-
     df[dcol] = dates.dt.date
 
-    # Behold kun gyldige rader
     df = df[(df[bcol] != "") & df[dcol].notna()]
-
     out = df[[bcol, dcol]].copy()
     out.columns = ["Merke", "Innlevert"]
     return out
-  
+
+
+@st.cache_data(ttl=300, show_spinner=False)
 def read_df_inhouse():
     """Les 'Inhouse' fra WORKSHEET_INHOUSE.
        Forventer A=Merke, B=Statustekst, C=Statusdato (tekst eller Excel-seriedato)."""
@@ -362,11 +328,11 @@ def read_df_inhouse():
     if missing:
         raise KeyError(", ".join(missing))
 
-    # Rens tekst
+    # Rens / normaliser
     df[brand_col]  = df[brand_col].astype(str).str.strip()
     df[status_col] = df[status_col].astype(str).str.strip()
 
-    # Robust dato-parsing (tekst + Excel-seriedato)
+    # Robust dato-parsing
     dates = pd.to_datetime(df[date_col], errors="coerce", dayfirst=True, infer_datetime_format=True)
     needs_excel = dates.isna()
     if needs_excel.any():
@@ -375,15 +341,12 @@ def read_df_inhouse():
         dates.loc[needs_excel] = conv
     df[date_col] = dates.dt.date
 
-    # Behold gyldige rader
     df = df[(df[brand_col] != "") & (df[status_col] != "") & df[date_col].notna()].copy()
 
-    # STANDARDISER alltid til disse tre navnene:
+    # Standardiser ut-kolonner
     out = df[[brand_col, status_col, date_col]].copy()
     out.columns = ["Merke", "Status", "Dato"]
     return out
-
-
 
 
 # ----------------------------
