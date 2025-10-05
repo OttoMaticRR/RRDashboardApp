@@ -45,6 +45,44 @@ st.set_page_config(
     initial_sidebar_state="collapsed"   # <- VIKTIG
 )
 
+# --- Globalt design-tema (farger/typografi) ---
+ACCENT = "#e73f3f"  # samme som menyen
+st.markdown(f"""
+<style>
+:root {{
+  --accent: {ACCENT};
+  --text: #0f1115;
+  --muted: #6b7280;
+  --card-bg: rgba(255,255,255,0.04);
+  --card-bd: rgba(255,255,255,0.10);
+}}
+
+/* Global font/antialias */
+html, body, [data-testid="stAppViewContainer"] * {{
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text);
+}}
+
+/* Overskrifter */
+h1, h2, h3 {{
+  letter-spacing: .2px;
+  line-height: 1.15;
+}}
+
+/* Understrek (accent) på seksjons-overskrifter */
+.block-header {{
+  display:flex; align-items:center; gap:.6rem; margin: .25rem 0 1rem 0;
+}}
+.block-header .dot {{
+  width:10px; height:10px; border-radius:50%; background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(231,63,63,.12);
+}}
+.block-header h2, .block-header h3 {{ margin:0; }}
+</style>
+""", unsafe_allow_html=True)
+
+
 # All CSS i ÉN blokk (IKKE fler st.markdown med <style> under)
 css = '''
 <style>
