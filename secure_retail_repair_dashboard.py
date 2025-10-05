@@ -509,9 +509,10 @@ def render_innlevert():
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
-        with st.container(border=True):
-            df_inn.index += 1  # <-- legg til denne linjen
-            st.dataframe(df_inn.reset_index(drop=False), use_container_width=True)
+    with st.container(border=True):
+        df_show = df_inn.copy()
+        df_show.index = range(1, len(df_show) + 1)  # 1-basert indeks
+        st.dataframe(df_show, use_container_width=True)
 
 
 # Hvis "Reparert" er valgt, fortsetter filen som før
@@ -590,9 +591,10 @@ def render_inhouse():
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
-        with st.container(border=True):
-            df_inh.index += 1  # <-- legg til denne linjen
-            st.dataframe(df_inh.reset_index(drop=False), use_container_width=True)
+    with st.container(border=True):
+        df_show = df_inh.copy()
+        df_show.index = range(1, len(df_show) + 1)
+        st.dataframe(df_show, use_container_width=True)
 
 
 
@@ -704,13 +706,17 @@ with right:
 with st.expander("Show tables", expanded=False):
     t_left, t_right = st.columns(2)
     with t_left:
-        st.write("Repairs per Brand")
-        repairs_per_brand.index += 1  # <-- legg til denne linjen
-        st.dataframe(repairs_per_brand.reset_index(drop=False), use_container_width=True)
+    st.write("Repairs per Brand")
+    tbl_brand = repairs_per_brand.copy()
+    tbl_brand.index = range(1, len(tbl_brand) + 1)
+    st.dataframe(tbl_brand, use_container_width=True)
+
     with t_right:
-        st.write("Repairs per Technician")
-        repairs_per_tech.index += 1  # <-- legg til denne linjen
-        st.dataframe(repairs_per_tech.reset_index(drop=False), use_container_width=True)
+    st.write("Repairs per Technician")
+    tbl_tech = repairs_per_tech.copy()
+    tbl_tech.index = range(1, len(tbl_tech) + 1)
+    st.dataframe(tbl_tech, use_container_width=True)
+
 
 
 # ----------------------------
