@@ -510,7 +510,8 @@ def render_innlevert():
     # Tabell
     with st.expander("Vis tabell", expanded=False):
         with st.container(border=True):
-            st.dataframe(df_inn.reset_index(drop=True), use_container_width=True)
+            df_inn.index += 1  # <-- legg til denne linjen
+            st.dataframe(df_inn.reset_index(drop=False), use_container_width=True)
 
 
 # Hvis "Reparert" er valgt, fortsetter filen som før
@@ -590,7 +591,9 @@ def render_inhouse():
     # Tabell
     with st.expander("Vis tabell", expanded=False):
         with st.container(border=True):
-            st.dataframe(df_inh.reset_index(drop=True), use_container_width=True)
+            df_inh.index += 1  # <-- legg til denne linjen
+            st.dataframe(df_inh.reset_index(drop=False), use_container_width=True)
+
 
 
 # ----------------------------
@@ -702,10 +705,13 @@ with st.expander("Show tables", expanded=False):
     t_left, t_right = st.columns(2)
     with t_left:
         st.write("Repairs per Brand")
-        st.dataframe(repairs_per_brand.reset_index(drop=True), use_container_width=True)
+        repairs_per_brand.index += 1  # <-- legg til denne linjen
+        st.dataframe(repairs_per_brand.reset_index(drop=False), use_container_width=True)
     with t_right:
         st.write("Repairs per Technician")
-        st.dataframe(repairs_per_tech.reset_index(drop=True), use_container_width=True)
+        repairs_per_tech.index += 1  # <-- legg til denne linjen
+        st.dataframe(repairs_per_tech.reset_index(drop=False), use_container_width=True)
+
 
 # ----------------------------
 # Admin: replace data
