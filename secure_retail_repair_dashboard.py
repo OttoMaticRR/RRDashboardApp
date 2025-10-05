@@ -161,6 +161,17 @@ div[data-testid="stMetricLabel"]{ font-size:.95rem; opacity:.9; text-align:cente
 .stPlotlyChart, .plotly, .js-plotly-plot{ background:transparent !important; }
 </style>
 '''
+
+/* Slankere, moderne kort */
+.rr-card, [data-testid="stContainer"] > div:has(> .rr-card-inner) { 
+  background: var(--card-bg);
+  border: 1px solid var(--card-bd);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  padding: 14px 16px;
+}
+.rr-card-inner { margin: 0; }
+
 st.markdown(css, unsafe_allow_html=True)
 
 
