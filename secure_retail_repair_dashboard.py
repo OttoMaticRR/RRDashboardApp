@@ -387,14 +387,12 @@ def read_df_inhouse():
 # ----------------------------
 # Navigasjon (sidebar) + Header
 # ----------------------------
-# --- Custom sidebar-meny (erstatter radio) ---
-# Les valgt fane fra URL (?view=Reparert|Innlevert|Inhouse)
+# --- Custom sidebar-meny (tekst = svart, åpner i samme fane) ---
 qp = st.query_params
 view = qp.get("view") or "Reparert"
-if isinstance(view, list):  # sikkerhet hvis miljøet returnerer liste
+if isinstance(view, list):
     view = view[0]
 
-# Stil + HTML for menyen
 st.sidebar.markdown(f"""
 <style>
 .sidebar-menu {{
@@ -403,15 +401,17 @@ st.sidebar.markdown(f"""
 }}
 .sidebar-menu .menu-item {{
   display: flex; align-items: center; gap: 10px;
-  color: #cfd3d7; text-decoration: none;
+  color: #111 !important; text-decoration: none;
   padding: 10px 14px; border-radius: 10px;
   transition: all .18s ease-in-out;
 }}
 .sidebar-menu .menu-item:hover {{
-  background: rgba(255,255,255,0.08); color: #fff;
+  background: rgba(0,0,0,0.07);
+  color: #000 !important;
 }}
 .sidebar-menu .menu-item.active {{
-  background: #e73f3f; color: #fff;
+  background: #e73f3f;
+  color: #000 !important;
   box-shadow: 0 6px 16px rgba(231,63,63,.35);
 }}
 .sidebar-menu .emoji {{
@@ -420,13 +420,13 @@ st.sidebar.markdown(f"""
 </style>
 
 <div class="sidebar-menu">
-  <a href="?view=Reparert"  class="menu-item{' active' if view=='Reparert'  else ''}">
+  <a href="?view=Reparert"  target="_self" class="menu-item{' active' if view=='Reparert'  else ''}">
     <span class="emoji">🧰</span> Reparert
   </a>
-  <a href="?view=Innlevert" class="menu-item{' active' if view=='Innlevert' else ''}">
+  <a href="?view=Innlevert" target="_self" class="menu-item{' active' if view=='Innlevert' else ''}">
     <span class="emoji">📦</span> Innlevert
   </a>
-  <a href="?view=Inhouse"   class="menu-item{' active' if view=='Inhouse'   else ''}">
+  <a href="?view=Inhouse"   target="_self" class="menu-item{' active' if view=='Inhouse'   else ''}">
     <span class="emoji">🏠</span> Inhouse
   </a>
 </div>
