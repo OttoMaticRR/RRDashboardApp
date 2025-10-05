@@ -224,6 +224,7 @@ elif auth_status is False:
 # Kolonnenavn som kan forekomme for dato i "Innlevert"
 DATE_COLS = ["Innlevert", "Received date", "Date"]
 
+@st.cache_resource(show_spinner=False)
 def gspread_client():
     svc_raw = st.secrets.get("gcp_service_account")
     if isinstance(svc_raw, str):
@@ -240,6 +241,7 @@ def gspread_client():
     ]
     creds = Credentials.from_service_account_info(svc_info, scopes=scopes)
     return gspread.authorize(creds)
+
 
 def read_df():
     """Les data for 'Reparert' fra worksheet WORKSHEET_REPARERT (default Sheet1)."""
