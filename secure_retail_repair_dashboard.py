@@ -704,16 +704,16 @@ with right:
 with st.expander("Show tables", expanded=False):
     t_left, t_right = st.columns(2)
     with t_left:
-    st.write("Repairs per Brand")
-    tbl_brand = repairs_per_brand.copy()
-    tbl_brand.index = range(1, len(tbl_brand) + 1)
-    st.dataframe(tbl_brand, use_container_width=True)
+        st.write("Repairs per Brand")
+        tbl_brand = repairs_per_brand.copy()
+        tbl_brand.index = range(1, len(tbl_brand) + 1)
+        st.dataframe(tbl_brand, use_container_width=True)
 
     with t_right:
-    st.write("Repairs per Technician")
-    tbl_tech = repairs_per_tech.copy()
-    tbl_tech.index = range(1, len(tbl_tech) + 1)
-    st.dataframe(tbl_tech, use_container_width=True)
+        st.write("Repairs per Technician")
+        tbl_tech = repairs_per_tech.copy()
+        tbl_tech.index = range(1, len(tbl_tech) + 1)
+        st.dataframe(tbl_tech, use_container_width=True)
 
 
 
