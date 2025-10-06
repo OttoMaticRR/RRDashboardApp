@@ -655,14 +655,13 @@ def render_arbeidet():
 
     left, right = st.columns(2)
 
-    # --- VENSTRE: Merker i dag (søyle) ---
+       # --- VENSTRE: Merker i dag (søyle) ---
     with left:
         with st.container(border=True):
             st.subheader("Merker i dag (antall)")
             per_brand = (
-                df_arb.groupby(brand_col).size()
+                df_arb.groupby("Merke").size()          # <- bruk den faktiske kolonnenavnet
                       .reset_index(name="Antall")
-                      .rename(columns={brand_col: "Merke"})
                       .sort_values("Antall", ascending=False, ignore_index=True)
             )
             if per_brand.empty:
