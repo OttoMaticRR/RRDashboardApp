@@ -593,7 +593,7 @@ def render_inhouse():
         with st.container(border=True):
             st.subheader("Antall per status")
             if per_status.empty:
-                st.info("Ingen inhouse-rader.")
+                st.info("Ingen registrerte enheter.")
             else:
                 fig_s = px.bar(per_status, x="Status", y="Antall", text="Antall")
                 fig_s.update_traces(textposition="outside", cliponaxis=False)
@@ -610,7 +610,7 @@ def render_inhouse():
         with st.container(border=True):
             st.subheader("Antall per dato")
             if per_day.empty:
-                st.info("Ingen inhouse-rader.")
+                st.info("Ingen registrerte enheter.")
             else:
                 fig_d = px.bar(per_day, x="Dato", y="Antall", text="Antall")
                 fig_d.update_traces(textposition="outside", cliponaxis=False)
@@ -665,7 +665,7 @@ def render_arbeidet():
                       .sort_values("Antall", ascending=False, ignore_index=True)
             )
             if per_brand.empty:
-                st.info("Ingen rader i dag.")
+                st.info("Ingen registreringer i dag.")
             else:
                 fig_b = px.bar(per_brand, x="Merke", y="Antall", text="Antall")
                 fig_b.update_traces(textposition="outside", cliponaxis=False)
