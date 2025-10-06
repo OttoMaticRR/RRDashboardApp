@@ -148,6 +148,7 @@ DATE_COLS   = ["Statusdato", "Dato", "Innlevert", "Received date", "Date"]
 WORKSHEET_REPARERT   = st.secrets.get("worksheet", "Sheet1")
 WORKSHEET_INNLEVERT  = st.secrets.get("worksheet_innlevert", "Sheet2")
 WORKSHEET_INHOUSE    = st.secrets.get("worksheet_inhouse", "Sheet3")  # NY
+WORKSHEET_ARBEIDET   = st.secrets.get("worksheet_arbeidet", "Sheet5")
 
 # Kompakt layout + kort-stil (uthev hver kolonne/boks)
 st.markdown("""
@@ -355,6 +356,57 @@ def read_df_inhouse():
     out = df[[brand_col, status_col, date_col]].copy()
     out.columns = ["Merke", "Status", "Dato"]
     return out
+    
+@st.cache_data(ttl=300, show_spinner=False)
+def read_df_arbeidet():
+    """
+    Leser dagens arbeid fra WORKSHEET_ARBEIDET (Sheet5).
+    Forventer minst tre kolonner (variasjoner håndteres case-insensitivt):
+      - Merker  (f.eks 'Merker', 'Merke', 'Brand')
+      - Status  (f.eks 'Statusteks', 'Statustekst', 'Status')
+      - Tekniker (f.eks 'Tekniker', 'Technician', 'Service technician')
+    Returnerer alltid kolonnene: Merke, Status, Tekniker
+    """
+    gc = gspread_client()
+    sh = gc.open_by_key(st.secrets.get("sheet_id"))
+    ws = sh.worksheet(WORKSHEET_ARBEIDET)
+
+    values = ws.get_all_values()
+    if not values or len(values) < 2:
+        return pd.DataFrame(columns=["Merke", "Status", "Tekniker"])
+
+    header = [h.strip() for h in values[0]]
+    rows = values[1:]
+    df = pd.DataFrame(rows, columns=header)
+
+    # Case-insensitive mapping
+    colmap = {c.lower().strip(): c for c in df.columns}
+
+    def pick_casefold(cands):
+        for cand in cands:
+            real = colmap.get(cand.lower())
+            if real:
+                return real
+        return None
+
+    brand_col = pick_casefold(["Merker", "Merke", "Brand"])
+    status_col = pick_casefold(["Statusteks", "Statustekst", "Status"])
+    tech_col = pick_casefold(["Tekniker", "Technician", "Service technician"])
+
+    if brand_col is None or status_col is None or tech_col is None:
+        # Returner tomt i riktig format (unngå krasj i UI)
+        return pd.DataFrame(columns=["Merke", "Status", "Tekniker"])
+
+    # Rens litt
+    df[brand_col] = df[brand_col].astype(str).str.strip()
+    df[status_col] = df[status_col].astype(str).str.strip()
+    df[tech_col] = df[tech_col].astype(str).str.strip()
+
+    out = df[[brand_col, status_col, tech_col]].copy()
+    out.columns = ["Merke", "Status", "Tekniker"]
+    # Filtrer bort helt blanke rader
+    out = out[(out["Merke"] != "") | (out["Status"] != "") | (out["Tekniker"] != "")]
+    return out.reset_index(drop=True)
 
 
 # ----------------------------
@@ -401,6 +453,9 @@ st.sidebar.markdown(f"""
   </a>
   <a href="?view=Inhouse"   target="_self" class="menu-item{' active' if view=='Inhouse'   else ''}">
     <span class="emoji">🏠</span> Inhouse
+  </a>
+    <a href="?view=Arbeidet" target="_self" class="menu-item{' active' if view=='Arbeidet' else ''}">
+    <span class="emoji">🛠️</span> Arbeidet på
   </a>
 </div>
 """, unsafe_allow_html=True)
@@ -569,6 +624,81 @@ def render_inhouse():
             df_show.index = range(1, len(df_show) + 1)
             st.dataframe(df_show, use_container_width=True)
 
+def render_arbeidet():
+    try:
+        df_a = read_df_arbeidet()
+    except Exception as e:
+        st.error(f"Kunne ikke lese 'Arbeidet på': {e}")
+        st.stop()
+
+    # KPI-er
+    total = len(df_a)
+    if total:
+        status_counts = df_a["Status"].value_counts()
+        top_status = status_counts.idxmax()
+        top_status_count = int(status_counts.max())
+
+        tech_counts = df_a["Tekniker"].value_counts()
+        top_tech = tech_counts.idxmax()
+        top_tech_count = int(tech_counts.max())
+    else:
+        top_status, top_status_count = "-", 0
+        top_tech, top_tech_count = "-", 0
+
+    sp_l, c1, c2, c3, sp_r = st.columns([1, 3, 3, 3, 1], gap="small")
+    with c1:
+        st.metric("Totalt (i dag)", total)
+    with c2:
+        st.metric("Status (flest)", top_status, f"{top_status_count} stk" if top_status_count else None)
+    with c3:
+        st.metric("Top Technician", top_tech, f"{top_tech_count} stk" if top_tech_count else None)
+
+    left, right = st.columns(2)
+
+    # Venstre: TABELL – antall pr. merke
+    with left:
+        with st.container(border=True):
+            st.subheader("Merker i dag (antall)")
+            if df_a.empty:
+                st.info("Ingen registreringer i dag.")
+            else:
+                per_brand = (
+                    df_a.groupby("Merke").size()
+                        .reset_index(name="Antall")
+                        .sort_values("Antall", ascending=False, ignore_index=True)
+                )
+                # Vis som pen tabell med 1-basert indeks
+                per_brand_show = per_brand.copy()
+                per_brand_show.index = range(1, len(per_brand_show) + 1)
+                st.dataframe(per_brand_show, use_container_width=True)
+
+    # Høyre: SØYLE – antall pr. status
+    with right:
+        with st.container(border=True):
+            st.subheader("Status i dag (antall)")
+            if df_a.empty:
+                st.info("Ingen registreringer i dag.")
+            else:
+                per_status = (
+                    df_a.groupby("Status").size()
+                        .reset_index(name="Antall")
+                        .sort_values("Antall", ascending=False, ignore_index=True)
+                )
+                fig = px.bar(per_status, x="Status", y="Antall", text="Antall")
+                fig.update_traces(textposition="outside", cliponaxis=False)
+                fig.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+                st.plotly_chart(fig, use_container_width=True)
+
+    # Valgfri: full tabell under en expander
+    with st.expander("Vis råtabell (i dag)", expanded=False):
+        if df_a.empty:
+            st.info("Ingen data.")
+        else:
+            df_show = df_a.copy()
+            df_show.index = range(1, len(df_show) + 1)
+            st.dataframe(df_show, use_container_width=True)
+
+
 # ----------------------------
 # Ruting mellom visninger (må komme ETTER at funksjonene er definert)
 # ----------------------------
@@ -577,6 +707,9 @@ if view == "Innlevert":
     st.stop()
 elif view == "Inhouse":
     render_inhouse()
+    st.stop()
+elif view == "Arbeidet":
+    render_arbeidet()
     st.stop()
 
 
