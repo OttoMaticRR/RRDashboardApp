@@ -784,7 +784,7 @@ repairs_per_brand = (df.groupby(brand_col).size()
 with left:
     st.subheader("Repairs by Brand")
     if repairs_per_brand.empty:
-        st.info("No brand data.")
+        st.info("Ingen registreringer i dag.")
     else:
         repairs_per_brand["Brand"] = repairs_per_brand["Brand"].astype(str)
         repairs_per_brand["Repairs"] = repairs_per_brand["Repairs"].astype(int)
@@ -796,7 +796,7 @@ with left:
 with right:
     st.subheader("Repairs by Technician")
     if repairs_per_tech.empty:
-        st.info("No technician data.")
+        st.info("Ingen registreringer i dag.")
     else:
         repairs_per_tech["Technician"] = repairs_per_tech["Technician"].astype(str)
         repairs_per_tech["Repairs"] = repairs_per_tech["Repairs"].astype(int)
