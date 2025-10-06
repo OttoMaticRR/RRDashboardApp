@@ -626,7 +626,7 @@ def render_inhouse():
 
 def render_arbeidet():
     try:
-        df_a = read_df_arbeidet()
+        df_arb = read_df_arbeidet()   # <- MÅ være her før vi bruker df_arb
     except Exception as e:
         st.error(f"Kunne ikke lese 'Arbeidet på': {e}")
         st.stop()
@@ -660,7 +660,7 @@ def render_arbeidet():
         with st.container(border=True):
             st.subheader("Merker i dag (antall)")
             per_brand = (
-                df_arb.groupby("Merke").size()          # <- bruk den faktiske kolonnenavnet
+                df_arb.groupby("Merke").size()         # df_arb er definert øverst i funksjonen
                       .reset_index(name="Antall")
                       .sort_values("Antall", ascending=False, ignore_index=True)
             )
@@ -671,6 +671,7 @@ def render_arbeidet():
                 fig_b.update_traces(textposition="outside", cliponaxis=False)
                 fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_b, use_container_width=True)
+
 
 
     # Høyre: SØYLE – antall pr. status
