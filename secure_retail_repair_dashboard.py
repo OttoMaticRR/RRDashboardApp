@@ -462,9 +462,17 @@ st.sidebar.markdown(f"""
 
 
 # Header (tittel venstre, dato høyre)
+VIEW_TITLES = {
+    "Reparert":  "Reparert",
+    "Innlevert": "Innlevert",
+    "Inhouse":   "Inhouse",
+    "Arbeidet":  "Arbeidet på",
+}
+page_h1 = VIEW_TITLES.get(view, TITLE)  # faller tilbake til global TITLE om noe er ukjent
+
 h_left, h_right = st.columns([6, 1])
 with h_left:
-    st.markdown(f"# {TITLE}")   # Eksisterende tittel
+    st.markdown(f"# {page_h1}")
 with h_right:
     st.markdown(
         f"<div class='date-right'>{format_no_date(datetime.now())}</div>",
