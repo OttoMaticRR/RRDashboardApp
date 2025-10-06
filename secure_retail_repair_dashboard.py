@@ -655,22 +655,24 @@ def render_arbeidet():
 
     left, right = st.columns(2)
 
-    # Venstre: TABELL – antall pr. merke
+    # --- VENSTRE: Merker i dag (søyle) ---
     with left:
         with st.container(border=True):
             st.subheader("Merker i dag (antall)")
-            if df_a.empty:
-                st.info("Ingen registreringer i dag.")
+            per_brand = (
+                df_arb.groupby(brand_col).size()
+                      .reset_index(name="Antall")
+                      .rename(columns={brand_col: "Merke"})
+                      .sort_values("Antall", ascending=False, ignore_index=True)
+            )
+            if per_brand.empty:
+                st.info("Ingen rader i dag.")
             else:
-                per_brand = (
-                    df_a.groupby("Merke").size()
-                        .reset_index(name="Antall")
-                        .sort_values("Antall", ascending=False, ignore_index=True)
-                )
-                # Vis som pen tabell med 1-basert indeks
-                per_brand_show = per_brand.copy()
-                per_brand_show.index = range(1, len(per_brand_show) + 1)
-                st.dataframe(per_brand_show, use_container_width=True)
+                fig_b = px.bar(per_brand, x="Merke", y="Antall", text="Antall")
+                fig_b.update_traces(textposition="outside", cliponaxis=False)
+                fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+                st.plotly_chart(fig_b, use_container_width=True)
+
 
     # Høyre: SØYLE – antall pr. status
     with right:
