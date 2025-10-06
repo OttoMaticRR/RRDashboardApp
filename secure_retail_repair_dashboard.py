@@ -617,35 +617,6 @@ def render_inhouse():
                 fig_d.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_d, use_container_width=True)
 
-        # ---------- Tabeller ----------
-    with st.expander("Vis tabeller", expanded=False):
-        t_left, t_right = st.columns(2)
-
-        # Merker i dag (tabell)
-        with t_left:
-            st.write("Merker i dag")
-            tbl_brand = (
-                df_arb.groupby(brand_col).size()
-                      .reset_index(name="Antall")
-                      .rename(columns={brand_col: "Merke"})
-                      .sort_values("Antall", ascending=False, ignore_index=True)
-            )
-            # 1-basert indeks
-            tbl_brand.index = range(1, len(tbl_brand) + 1)
-            st.dataframe(tbl_brand, use_container_width=True)
-
-        # Teknikere i dag (tabell)
-        with t_right:
-            st.write("Teknikere i dag")
-            tbl_tech = (
-                df_arb.groupby(tech_col).size()
-                      .reset_index(name="Antall")
-                      .rename(columns={tech_col: "Tekniker"})
-                      .sort_values("Antall", ascending=False, ignore_index=True)
-            )
-            tbl_tech.index = range(1, len(tbl_tech) + 1)
-            st.dataframe(tbl_tech, use_container_width=True)
-
 
     # Tabell
     with st.expander("Vis tabell", expanded=False):
@@ -739,6 +710,35 @@ def render_arbeidet():
                 fig_s.update_traces(textposition="outside", cliponaxis=False)
                 fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_s, use_container_width=True)
+
+    
+    # ---------- TABELLER (under, i expander) ----------
+    with st.expander("Vis tabeller", expanded=False):
+        t_left, t_right = st.columns(2)
+
+        # Merker i dag (tabell)
+        with t_left:
+            st.write("Merker i dag")
+            tbl_brand = (
+                df_arb.groupby(brand_col).size()
+                      .reset_index(name="Antall")
+                      .rename(columns={brand_col: "Merke"})
+                      .sort_values("Antall", ascending=False, ignore_index=True)
+            )
+            tbl_brand.index = range(1, len(tbl_brand) + 1)  # 1-basert indeks
+            st.dataframe(tbl_brand, use_container_width=True)
+
+        # Teknikere i dag (tabell)
+        with t_right:
+            st.write("Teknikere i dag")
+            tbl_tech = (
+                df_arb.groupby(tech_col).size()
+                      .reset_index(name="Antall")
+                      .rename(columns={tech_col: "Tekniker"})
+                      .sort_values("Antall", ascending=False, ignore_index=True)
+            )
+            tbl_tech.index = range(1, len(tbl_tech) + 1)
+            st.dataframe(tbl_tech, use_container_width=True)
 
 
 # ----------------------------
