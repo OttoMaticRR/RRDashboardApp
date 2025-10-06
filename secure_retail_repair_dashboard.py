@@ -93,48 +93,7 @@ header[data-testid="stHeader"]{
   min-height: 2rem;
 }
 
-/* Ikke skjul toolbaren – la Streamlit håndtere den.
-   (Fjern alle regler som hadde `div[data-testid="stToolbar"] * { display:none }`) */
-
-/* ————— HAMBURGER: gjør den synlig og plasser den i hjørnet ————— */
-/* Nyere Streamlit */
-div[data-testid="stSidebarCollapsedControl"]{
-  visibility: visible !important;
-  display: block !important;
-  position: fixed !important;
-  top: 10px; left: 10px;
-  z-index: 1001;
-}
-/* Eldre fallbacks */
-div[data-testid="collapsedControl"],
-button[title="Open sidebar"],
-button[title="Toggle sidebar"],
-button[aria-label="Open sidebar"],
-button[aria-label="Toggle sidebar"],
-button[data-testid="baseButton-header"]{
-  visibility: visible !important;
-  display: inline-flex !important;
-  position: fixed !important;
-  top: 10px; left: 10px;
-  z-index: 1001;
-}
-
-/* Litt kontrast på knappen */
-div[data-testid="stSidebarCollapsedControl"],
-div[data-testid="collapsedControl"],
-button[title="Open sidebar"],
-button[title="Toggle sidebar"],
-button[aria-label="Open sidebar"],
-button[aria-label="Toggle sidebar"],
-button[data-testid="baseButton-header"]{
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  padding: 2px 6px;
-  backdrop-filter: blur(4px);
-}
-
-/* ————— Fjern dødplass i innholdet ————— */
+/* Ikke skjul toolbaren – la Streamlit håndtere den. */
 main .block-container{
   padding-top: .2rem;
   margin-top: -.6rem;    /* justér ved behov (mer negativt = mindre luft) */
@@ -143,7 +102,7 @@ main .block-container{
 /* Dato høyre */
 .date-right{ text-align:right; font-size:1rem; margin:0; padding-top:.2rem; }
 
-/* KPI-kort (som du hadde) */
+/* KPI-kort */
 div[data-testid="stMetric"]{
   min-height:150px; height:150px;
   display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
@@ -159,10 +118,8 @@ div[data-testid="stMetricLabel"]{ font-size:.95rem; opacity:.9; text-align:cente
   border-radius:12px; padding:16px; box-shadow:0 6px 16px rgba(0,0,0,.25); margin-bottom:1rem;
 }
 .stPlotlyChart, .plotly, .js-plotly-plot{ background:transparent !important; }
-</style>
-'''
 
-/* Slankere, moderne kort */
+/* Slankere, moderne kort (flyttet INNI <style>) */
 .rr-card, [data-testid="stContainer"] > div:has(> .rr-card-inner) { 
   background: var(--card-bg);
   border: 1px solid var(--card-bd);
@@ -171,8 +128,10 @@ div[data-testid="stMetricLabel"]{ font-size:.95rem; opacity:.9; text-align:cente
   padding: 14px 16px;
 }
 .rr-card-inner { margin: 0; }
-
+</style>
+'''
 st.markdown(css, unsafe_allow_html=True)
+
 
 
 # --- KONSTANTER (må komme før de brukes) ---
