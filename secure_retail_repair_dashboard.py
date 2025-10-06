@@ -631,74 +631,84 @@ def render_arbeidet():
         st.error(f"Kunne ikke lese 'Arbeidet på': {e}")
         st.stop()
 
-    # KPI-er
-    total = len(df_a)
-    if total:
-        status_counts = df_a["Status"].value_counts()
-        top_status = status_counts.idxmax()
-        top_status_count = int(status_counts.max())
+       # ---------- KPI-er ----------
+    def pick_casefold(cands, cols):
+        cmap = {c.lower().strip(): c for c in cols}
+        for cand in cands:
+            real = cmap.get(cand.lower())
+            if real:
+                return real
+        return None
 
-        tech_counts = df_a["Tekniker"].value_counts()
-        top_tech = tech_counts.idxmax()
-        top_tech_count = int(tech_counts.max())
-    else:
-        top_status, top_status_count = "-", 0
-        top_tech, top_tech_count = "-", 0
+    status_col  = pick_casefold(["Statustekst", "Statusteks", "Status"], df_arb.columns) or "Statustekst"
+    tech_col    = pick_casefold(["Tekniker", "Technician", "Service technician"], df_arb.columns) or "Tekniker"
+    brand_col   = pick_casefold(["Merke", "Brand", "Product brand", "Merker"], df_arb.columns) or "Merke"
 
+    total = len(df_arb)
+
+    top_status = "-"
+    top_status_count = 0
+    if status_col in df_arb.columns and not df_arb.empty:
+        sc = df_arb[status_col].astype(str).str.strip().value_counts()
+        if not sc.empty:
+            top_status = sc.idxmax()
+            top_status_count = int(sc.max())
+
+    top_tech = "-"
+    top_tech_count = 0
+    if tech_col in df_arb.columns and not df_arb.empty:
+        tc = df_arb[tech_col].astype(str).str.strip().value_counts()
+        if not tc.empty:
+            top_tech = tc.idxmax()
+            top_tech_count = int(tc.max())
+
+    # KPI-rad
     sp_l, c1, c2, c3, sp_r = st.columns([1, 3, 3, 3, 1], gap="small")
     with c1:
-        st.metric("Totalt (i dag)", total)
+        st.metric("Totalt i dag", total)
     with c2:
-        st.metric("Status (flest)", top_status, f"{top_status_count} stk" if top_status_count else None)
+        st.metric("Mest satt status", top_status, f"{top_status_count} stk" if top_status_count else None)
     with c3:
-        st.metric("Top Technician", top_tech, f"{top_tech_count} stk" if top_tech_count else None)
+        st.metric("Top technician", top_tech, f"{top_tech_count} jobber" if top_tech_count else None)
 
+    # ---------- Grafer ----------
     left, right = st.columns(2)
 
-       # --- VENSTRE: Merker i dag (søyle) ---
+    # VENSTRE: Merker i dag (SØYLE)
     with left:
         with st.container(border=True):
             st.subheader("Merker i dag (antall)")
             per_brand = (
-                df_arb.groupby("Merke").size()         # df_arb er definert øverst i funksjonen
+                df_arb.groupby(brand_col).size()
                       .reset_index(name="Antall")
+                      .rename(columns={brand_col: "Merke"})
                       .sort_values("Antall", ascending=False, ignore_index=True)
             )
             if per_brand.empty:
-                st.info("Ingen registreringer i dag.")
+                st.info("Ingen rader i dag.")
             else:
                 fig_b = px.bar(per_brand, x="Merke", y="Antall", text="Antall")
                 fig_b.update_traces(textposition="outside", cliponaxis=False)
                 fig_b.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
                 st.plotly_chart(fig_b, use_container_width=True)
 
-
-
-    # Høyre: SØYLE – antall pr. status
+    # HØYRE: Status i dag (SØYLE)
     with right:
         with st.container(border=True):
             st.subheader("Status i dag (antall)")
-            if df_a.empty:
-                st.info("Ingen registreringer i dag.")
+            per_status = (
+                df_arb.groupby(status_col).size()
+                      .reset_index(name="Antall")
+                      .rename(columns={status_col: "Status"})
+                      .sort_values("Antall", ascending=False, ignore_index=True)
+            )
+            if per_status.empty:
+                st.info("Ingen rader i dag.")
             else:
-                per_status = (
-                    df_a.groupby("Status").size()
-                        .reset_index(name="Antall")
-                        .sort_values("Antall", ascending=False, ignore_index=True)
-                )
-                fig = px.bar(per_status, x="Status", y="Antall", text="Antall")
-                fig.update_traces(textposition="outside", cliponaxis=False)
-                fig.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
-                st.plotly_chart(fig, use_container_width=True)
-
-    # Valgfri: full tabell under en expander
-    with st.expander("Vis råtabell (i dag)", expanded=False):
-        if df_a.empty:
-            st.info("Ingen data.")
-        else:
-            df_show = df_a.copy()
-            df_show.index = range(1, len(df_show) + 1)
-            st.dataframe(df_show, use_container_width=True)
+                fig_s = px.bar(per_status, x="Status", y="Antall", text="Antall")
+                fig_s.update_traces(textposition="outside", cliponaxis=False)
+                fig_s.update_layout(margin=dict(l=10, r=10, t=30, b=10), xaxis_tickangle=-35)
+                st.plotly_chart(fig_s, use_container_width=True)
 
 
 # ----------------------------
